@@ -69,8 +69,9 @@ dependencies {
 //    implementation(libs.kmongo.serialization)
 //    implementation(libs.kotlinx.serialization.json)
 //    implementation(libs.kmongo.coroutine)
-//    implementation(libs.maps.compose)
-//    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.coil.compose)
 }
