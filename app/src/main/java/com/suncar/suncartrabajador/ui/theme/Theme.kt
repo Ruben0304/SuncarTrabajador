@@ -9,36 +9,65 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+// --- Colores personalizados de la marca Suncar ---
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Orange200, // Lighter orange for dark theme primary
-    onPrimary = Black, // Text on primary background should be dark
-    secondary = Teal200, // Lighter teal for secondary in dark theme
-    tertiary = Orange700, // Darker orange as tertiary
-    background = Grey800, // Dark grey background
-    surface = Grey800, // Dark grey surface
-    onBackground = White, // White text on dark background
-    onSurface = White // White text on dark surface
-)
+// Naranja principal del logo (del degradado del sol)
+val SuncarPrimaryOrange = Color(0xFFD09752)
+
+// Azul oscuro del texto "SUNCAR"
+val SuncarDarkBlue = Color(0xFF0A2A5B)
+
+// Naranja secundario del texto "Operaciones"
+val SuncarTertiaryOrange = Color(0xFFF07F2D)
+
+// Amarillo brillante de los rayos del sol
+val SuncarAccentYellow = Color(0xFFFDD835)
+
+// Colores neutros para texto y fondos
+val SuncarTextDark = Color(0xFF0A2A5B) // Usando el azul oscuro para texto principal
+val SuncarTextLight = Color(0xFFFFFFFF)
+val SuncarBackgroundDark = Color(0xFF121212)
+val SuncarBackgroundLight = Color(0xFFFFFFFF)
+val SuncarSurfaceDark = Color(0xFF1E1E1E)
+val SuncarSurfaceLight = Color(0xFFF1EFEF)
+
+
+// --- Esquema para el Tema Claro ---
 
 private val LightColorScheme = lightColorScheme(
-    primary = Orange500, // Elegant orange as primary
-    onPrimary = White, // White text on primary background
-    secondary = Teal700, // Darker teal as secondary
-    onSecondary = White, // White text on secondary background
-    tertiary = Orange700, // Darker orange as tertiary
-    onTertiary = White, // White text on tertiary background
-    background = White, // White background
-    surface = White, // White surface
-    onBackground = Grey800, // Dark grey text on white background
-    onSurface = Grey800 // Dark grey text on white surface
+    primary = SuncarPrimaryOrange,
+    onPrimary = SuncarTextLight, // Texto blanco sobre naranja se ve bien
+    secondary = SuncarDarkBlue,
+    onSecondary = SuncarTextLight,
+    tertiary = SuncarTertiaryOrange,
+    onTertiary = SuncarTextLight,
+    background = SuncarBackgroundLight,
+    surface = SuncarSurfaceLight,
+    onBackground = SuncarTextDark, // Azul oscuro para texto sobre fondo claro
+    onSurface = SuncarTextDark
 )
 
+
+// --- Esquema para el Tema Oscuro ---
+
+private val DarkColorScheme = darkColorScheme(
+    primary = SuncarPrimaryOrange, // Amarillo para destacar en tema oscuro
+    onPrimary = Black,  // Texto azul oscuro sobre amarillo
+    secondary = SuncarDarkBlue,
+    onSecondary = SuncarTextLight,
+    tertiary = SuncarTertiaryOrange,
+    onTertiary = SuncarTextLight,
+    background = SuncarBackgroundDark,
+    surface = SuncarSurfaceDark,
+    onBackground = SuncarTextLight, // Texto blanco sobre fondo oscuro
+    onSurface = SuncarTextLight
+)
 @Composable
 fun SuncarTrabajadorTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit

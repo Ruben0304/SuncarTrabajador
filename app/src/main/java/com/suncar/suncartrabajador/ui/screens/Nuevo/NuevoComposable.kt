@@ -25,83 +25,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.suncar.suncartrabajador.ui.shared.HeaderSection
 
 @Composable
 fun NuevoComposable(
     modifier: Modifier = Modifier,
-    onNavigateToInversion: () -> Unit = {}
+    onNavigateToInversion: () -> Unit = {},
+    onNavigateToOperacion: () -> Unit = {},
+    onNavigateToAveria: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
-
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        // Fondo degradado sutil
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
-                        )
-                    )
-                )
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Header section
-            HeaderSection()
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Cards section
-            CardsSection(onNavigateToInversion = onNavigateToInversion)
-
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-private fun HeaderSection() {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título principal
-        Text(
-            text = "¿Qué deseas reportar?",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
+        // Header section
+        HeaderSection("¿Qué deseas reportar?", "Selecciona el tipo de reporte que necesitas crear")
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Cards section
+        CardsSection(
+            onNavigateToInversion = onNavigateToInversion,
+            onNavigateToOperacion = onNavigateToOperacion,
+            onNavigateToAveria = onNavigateToAveria
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Subtítulo
-        Text(
-            text = "Selecciona el tipo de reporte que necesitas crear",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
+
 @Composable
-private fun CardsSection(onNavigateToInversion: () -> Unit) {
+private fun CardsSection(
+    onNavigateToInversion: () -> Unit,
+    onNavigateToOperacion: () -> Unit,
+    onNavigateToAveria: () -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -110,38 +73,34 @@ private fun CardsSection(onNavigateToInversion: () -> Unit) {
         // Avería
         EnhancedOptionCard(
             icon = Icons.Default.Warning,
-            title = "Avería",
-            description = "Reportar problemas o fallas en equipos",
+            title = "Avería o Queja",
+            description = "",
             gradientColors = listOf(
                 Color(0xFFFF6B6B).copy(alpha = 0.1f),
                 Color(0xFFFF8E8E).copy(alpha = 0.05f)
             ),
             iconColor = Color(0xFFFF6B6B),
-            onClick = {
-                // TODO: Implementar navegación a pantalla de avería
-            }
+            onClick = onNavigateToAveria
         )
 
         // Operación
         EnhancedOptionCard(
             icon = Icons.Default.Assessment,
-            title = "Operación",
-            description = "Registrar operaciones y actividades",
+            title = "Mantenimiento",
+            description = "",
             gradientColors = listOf(
                 Color(0xFF4ECDC4).copy(alpha = 0.1f),
                 Color(0xFF7FDBDA).copy(alpha = 0.05f)
             ),
             iconColor = Color(0xFF4ECDC4),
-            onClick = {
-                // TODO: Implementar navegación a pantalla de operación
-            }
+            onClick = onNavigateToOperacion
         )
 
         // Inversión
         EnhancedOptionCard(
             icon = Icons.Default.Build,
             title = "Inversión",
-            description = "Documentar inversiones y mejoras",
+            description = "",
             gradientColors = listOf(
                 Color(0xFF45B7D1).copy(alpha = 0.1f),
                 Color(0xFF96CDF0).copy(alpha = 0.05f)

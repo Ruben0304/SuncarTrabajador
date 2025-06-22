@@ -14,6 +14,7 @@ class BrigadaRepository {
         TeamMember("Sofia Torres", "6")
     )
 
+
     suspend fun getInitialBrigadaData(): InitialBrigadaData {
         delay(1000) // Simulate network delay
         val defaultLeader = allTeamMembers.first()
@@ -29,9 +30,7 @@ class BrigadaRepository {
         )
     }
 
-    fun getAllTeamMembers(): List<TeamMember> {
-        return allTeamMembers
-    }
+
 }
 
 data class InitialBrigadaData(

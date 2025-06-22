@@ -6,5 +6,7 @@ data class UbicacionState(
     val locationData: LocationData = LocationData(),
     val isLoading: Boolean = false,
     val hasGpsPermission: Boolean = false,
-    val gpsEnabled: Boolean = false
+    val gpsEnabled: Boolean = false,
+    val locationAccuracy: Float? = null,
+    val statusMessage: String = ""
 ) 

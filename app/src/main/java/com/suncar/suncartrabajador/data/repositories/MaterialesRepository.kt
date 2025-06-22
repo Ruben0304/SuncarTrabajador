@@ -1,7 +1,7 @@
 package com.suncar.suncartrabajador.data.repositories
 
 import com.suncar.suncartrabajador.domain.models.MaterialType
-import com.suncar.suncartrabajador.domain.models.MaterialBrand
+
 import com.suncar.suncartrabajador.domain.models.MaterialProduct
 import kotlinx.coroutines.delay
 
@@ -14,20 +14,7 @@ class MaterialesRepository {
         MaterialType("4", "Equipos Electrónicos")
     )
 
-    private val materialBrands = listOf(
-        MaterialBrand("1", "DeWalt", "1"),
-        MaterialBrand("2", "Makita", "1"),
-        MaterialBrand("3", "Bosch", "1"),
-        MaterialBrand("4", "3M", "2"),
-        MaterialBrand("5", "Honeywell", "2"),
-        MaterialBrand("6", "MSA", "2"),
-        MaterialBrand("7", "Cemex", "3"),
-        MaterialBrand("8", "Holcim", "3"),
-        MaterialBrand("9", "Argos", "3"),
-        MaterialBrand("10", "Samsung", "4"),
-        MaterialBrand("11", "LG", "4"),
-        MaterialBrand("12", "Sony", "4")
-    )
+
 
     private val materialProducts = listOf(
         MaterialProduct("1", "Taladro Eléctrico", "1"),
@@ -59,17 +46,12 @@ class MaterialesRepository {
         delay(1000) // Simulate network delay
         return InitialMaterialesData(
             materialTypes = materialTypes,
-            materialBrands = materialBrands,
             materialProducts = materialProducts
         )
     }
 
     fun getMaterialTypes(): List<MaterialType> {
         return materialTypes
-    }
-
-    fun getMaterialBrandsByType(typeId: String): List<MaterialBrand> {
-        return materialBrands.filter { it.typeId == typeId }
     }
 
     fun getMaterialProductsByBrand(brandId: String): List<MaterialProduct> {
@@ -79,6 +61,5 @@ class MaterialesRepository {
 
 data class InitialMaterialesData(
     val materialTypes: List<MaterialType>,
-    val materialBrands: List<MaterialBrand>,
     val materialProducts: List<MaterialProduct>
 ) 

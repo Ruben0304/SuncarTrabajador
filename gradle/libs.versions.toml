@@ -1,6 +1,7 @@
 [versions]
 agp = "8.12.0-alpha02"
 coilCompose = "2.7.0"
+converterGson = "3.0.0"
 kmongoAsync = "5.2.1"
 kmongoCoroutine = "5.2.1"
 kmongoSerialization = "5.2.1"
@@ -14,8 +15,10 @@ lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 lifecycleViewmodelCompose = "2.9.1"
+lottieCompose = "6.6.7"
 mapsCompose = "6.6.0"
 materialIconsExtended = "1.7.8"
+playServicesLocation = "21.3.0"
 playServicesMaps = "19.2.0"
 material3Jvmstubs = "1.4.0-alpha16"
 
@@ -24,6 +27,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -42,9 +46,12 @@ kmongo-async = { module = "org.litote.kmongo:kmongo-async", version.ref = "kmong
 kmongo-coroutine = { module = "org.litote.kmongo:kmongo-coroutine", version.ref = "kmongoCoroutine" }
 kmongo-serialization = { module = "org.litote.kmongo:kmongo-serialization", version.ref = "kmongoSerialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 androidx-material3-jvmstubs = { group = "androidx.compose.material3", name = "material3-jvmstubs", version.ref = "material3Jvmstubs" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

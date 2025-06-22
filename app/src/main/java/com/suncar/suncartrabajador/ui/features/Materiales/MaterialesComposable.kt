@@ -62,7 +62,7 @@ fun MaterialesComposable(
                     DropdownMenuItem(
                         text = { Text(type.name) },
                         onClick = {
-                            materialesViewModel.selectType(type)
+//                            materialesViewModel.selectType(type)
                             selectedProduct = null
                             typeExpanded = false
                         }

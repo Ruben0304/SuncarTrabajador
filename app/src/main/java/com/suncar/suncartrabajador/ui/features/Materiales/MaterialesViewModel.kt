@@ -34,18 +34,6 @@ class MaterialesViewModel : ViewModel() {
         }
     }
 
-    fun selectType(type: MaterialType) {
-        val products = repository.getMaterialBrandsByType(type.id).flatMap { brand ->
-            repository.getMaterialProductsByBrand(brand.id)
-        }
-        _uiState.update {
-            it.copy(
-                selectedType = type,
-                availableProducts = products
-            )
-        }
-    }
-
     fun updateMaterials(materials: List<MaterialItem>) {
         _uiState.value = _uiState.value.copy(materials = materials)
     }

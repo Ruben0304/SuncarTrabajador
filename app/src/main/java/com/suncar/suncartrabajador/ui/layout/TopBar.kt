@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,7 +40,7 @@ fun TopAppBarCustom(
                         .padding(end = 12.dp)
                 )
                 Text(
-                    text = "SunCar Trabajadores",
+                    text = "SunCar Operaciones",
                     style = MaterialTheme.typography.headlineSmall
                 )
             }
@@ -48,15 +49,16 @@ fun TopAppBarCustom(
             if (showBackButton && onBackPressed != null) {
                 IconButton(onClick = onBackPressed) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver atrás"
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver atrás",
+                        tint = MaterialTheme.colorScheme.onSecondary
                     )
                 }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            titleContentColor = MaterialTheme.colorScheme.onSurface
+            containerColor = MaterialTheme.colorScheme.secondary,
+            titleContentColor = MaterialTheme.colorScheme.onSecondary
         )
     )
 }

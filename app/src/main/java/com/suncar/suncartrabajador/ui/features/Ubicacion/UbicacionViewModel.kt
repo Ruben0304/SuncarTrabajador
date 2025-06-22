@@ -40,19 +40,6 @@ class UbicacionViewModel : ViewModel() {
         }
     }
 
-    fun getCurrentLocation() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val currentLocation = repository.getCurrentLocation()
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    locationData = currentLocation
-                )
-            }
-        }
-    }
-
     fun updateLocationData(locationData: LocationData) {
         _uiState.update { currentState ->
             currentState.copy(locationData = locationData)
@@ -65,5 +52,13 @@ class UbicacionViewModel : ViewModel() {
 
     fun setGpsEnabled(enabled: Boolean) {
         _uiState.update { it.copy(gpsEnabled = enabled) }
+    }
+
+    fun setLocationAccuracy(accuracy: Float?) {
+        _uiState.update { it.copy(locationAccuracy = accuracy) }
+    }
+
+    fun setStatusMessage(message: String) {
+        _uiState.update { it.copy(statusMessage = message) }
     }
 } 

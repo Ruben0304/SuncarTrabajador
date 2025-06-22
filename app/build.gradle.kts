@@ -65,13 +65,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.material.icons.extended)
-//    implementation(libs.kmongo.coroutine)
-//    implementation(libs.kmongo.serialization)
-//    implementation(libs.kotlinx.serialization.json)
-//    implementation(libs.kmongo.coroutine)
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
-
+    implementation(libs.play.services.location)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.coil.compose)
+    implementation(libs.lottie.compose)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }

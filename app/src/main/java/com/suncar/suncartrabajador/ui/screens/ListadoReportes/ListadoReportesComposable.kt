@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.suncar.suncartrabajador.domain.models.ReportList
+import com.suncar.suncartrabajador.ui.shared.HeaderSection
 
 @Composable
 fun ListadoReportesComposable(
@@ -29,21 +30,9 @@ fun ListadoReportesComposable(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        HeaderSection("Reportes no enviados","Reportes guardados que aún no has enviado")
         // Título
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Reportes no enviados",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -122,7 +111,8 @@ fun ReportItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier

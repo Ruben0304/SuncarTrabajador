@@ -51,6 +51,10 @@ data class LocationData(
 
 data class MaterialType(val id: String, val name: String)
 
-data class MaterialBrand(val id: String, val name: String, val typeId: String)
-
 data class MaterialProduct(val id: String, val name: String, val brandId: String)
+
+data class Cliente(
+    val numero: String,
+    val nombre: String,
+    val direccion: String? = null
+)
