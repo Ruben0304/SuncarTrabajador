@@ -1,5 +1,7 @@
 package com.suncar.suncartrabajador.ui.screens.ListadoReportes
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,13 +12,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import com.suncar.suncartrabajador.R
 import com.suncar.suncartrabajador.domain.models.ReportList
 import com.suncar.suncartrabajador.ui.shared.HeaderSection
+import com.suncar.suncartrabajador.utils.ImageUtils
 
 @Composable
 fun ListadoReportesComposable(
@@ -24,6 +30,11 @@ fun ListadoReportesComposable(
     listadoReportesViewModel: ListadoReportesViewModel = viewModel()
 ) {
     val state by listadoReportesViewModel.uiState.collectAsState()
+
+    // Recarga automática al entrar en la pantalla
+    LaunchedEffect(Unit) {
+        listadoReportesViewModel.refreshReportList()
+    }
 
     Column(
         modifier = modifier
@@ -91,11 +102,38 @@ fun ListadoReportesComposable(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(state.reports, key = { it.fecha + it.cliente }) { report ->
+                items(state.reports, key = { it.id }) { report ->
                     ReportItem(report = report, listadoReportesViewModel = listadoReportesViewModel)
                 }
             }
         }
+    }
+
+    // Diálogo de éxito
+    if (state.showSuccessDialog && state.successMessage != null) {
+        AlertDialog(
+            onDismissRequest = { listadoReportesViewModel.dismissSuccessDialog() },
+            title = { Text("Éxito") },
+            text = { Text(state.successMessage ?: "") },
+            confirmButton = {
+                Button(onClick = { listadoReportesViewModel.dismissSuccessDialog() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+    // Diálogo de error
+    if (state.showErrorDialog && state.errorMessage != null) {
+        AlertDialog(
+            onDismissRequest = { listadoReportesViewModel.dismissErrorDialog() },
+            title = { Text("Error") },
+            text = { Text(state.errorMessage ?: "") },
+            confirmButton = {
+                Button(onClick = { listadoReportesViewModel.dismissErrorDialog() }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
 
@@ -106,7 +144,7 @@ fun ReportItem(
     listadoReportesViewModel: ListadoReportesViewModel = viewModel()
 ) {
     val state by listadoReportesViewModel.uiState.collectAsState()
-    val isSending = state.sendingReports.contains("${report.fecha}_${report.cliente}")
+    val isSending = state.sendingReports.contains("${report.id}")
     
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -121,13 +159,11 @@ fun ReportItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Imagen a la izquierda
-            AsyncImage(
-                model = report.img,
-                contentDescription = "Imagen del reporte",
+            Base64Image(
+                base64 = report.img,
                 modifier = Modifier
                     .size(60.dp)
-                    .padding(end = 16.dp),
-                contentScale = ContentScale.Crop
+                    .padding(end = 16.dp)
             )
             
             // Contenido de texto
@@ -181,4 +217,24 @@ fun ReportItem(
             }
         }
     }
-} 
+}
+
+@Composable
+fun Base64Image(base64: String, modifier: Modifier = Modifier) {
+    val bitmap = remember(base64) { ImageUtils.decodeBase64ToBitmap(base64) }
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = "Imagen base64",
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+
+        )
+    } else {
+        Image(
+            painter = painterResource(id = R.drawable.icon_inside),
+            contentDescription = if (base64.isNotBlank()) "Imagen no válida" else "Sin imagen",
+            modifier = modifier
+        )
+    }
+}

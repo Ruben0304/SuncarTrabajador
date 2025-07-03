@@ -30,7 +30,7 @@ fun BrigadaComposable(
 
     CustomCard(
         modifier = modifier.padding(16.dp),
-        title = "Gestión de Brigada",
+        title = "Brigada",
         subtitle = "Añade o elimina miembros de tu equipo",
         icon = Icons.Filled.Groups,
         isLoading = state.isLoading

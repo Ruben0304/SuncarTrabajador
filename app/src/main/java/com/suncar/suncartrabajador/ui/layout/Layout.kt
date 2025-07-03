@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Group
@@ -29,13 +30,16 @@ import com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen
 import com.suncar.suncartrabajador.ui.screens.ListadoReportes.ListadoReportesComposable
 import com.suncar.suncartrabajador.ui.screens.Nuevo.NuevoComposable
 import com.suncar.suncartrabajador.ui.reportes.Inversion.InversionScreen
-import com.suncar.suncartrabajador.ui.screens.Brigada.BrigadaConfigScreen
+import com.suncar.suncartrabajador.ui.reportes.Mantenimiento.MantenimientoScreen
+import com.suncar.suncartrabajador.ui.screens.Cuenta.CuentaConfigScreen
 
 
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainAppContent() {
+fun MainAppContent(
+    onLogout: () -> Unit = {}
+) {
     var currentDestination by remember { mutableStateOf(AppDestinations.REPORTS) }
     var currentScreen by remember { mutableStateOf<Screen?>(null) }
 
@@ -98,7 +102,14 @@ fun MainAppContent() {
                             )
                         }
                         // Agregar más pantallas aquí según sea necesario
-                        Screen.MANTENIMIENTO -> TODO()
+                        Screen.MANTENIMIENTO -> MantenimientoScreen(
+                            onBackPressed = { currentScreen = null },
+                            onSubmit = {
+                                // TODO: Implementar lógica de envío
+                                currentScreen = null
+                            }
+                        )
+
                         Screen.AVERIA -> AveriaScreen(
                             onBackPressed = { currentScreen = null },
                             onSubmit = {
@@ -127,8 +138,9 @@ fun MainAppContent() {
                 }
 
                 currentDestination == AppDestinations.BRIGADA -> {
-                    BrigadaConfigScreen(
-                        modifier = Modifier.fillMaxSize()
+                    CuentaConfigScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onLogout = onLogout
                     )
                 }
             }
@@ -142,7 +154,7 @@ enum class AppDestinations(
 ) {
     REPORTS("Reportes", Icons.Default.Assessment),
     NUEVO("Nuevo", Icons.Default.Add),
-    BRIGADA("Brigada", Icons.Default.Group),
+    BRIGADA("Cuenta", Icons.Default.AccountCircle),
 }
 
 enum class Screen {

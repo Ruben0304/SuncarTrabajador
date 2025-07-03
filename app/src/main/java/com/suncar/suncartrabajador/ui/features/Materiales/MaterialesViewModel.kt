@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.suncar.suncartrabajador.data.repositories.MaterialesRepository
 import com.suncar.suncartrabajador.domain.models.MaterialItem
-import com.suncar.suncartrabajador.domain.models.MaterialType
 import com.suncar.suncartrabajador.domain.models.MaterialProduct
+import com.suncar.suncartrabajador.domain.models.MaterialCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,5 +57,36 @@ class MaterialesViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             materials = currentMaterials.map { if (it == oldMaterial) newMaterial else it }
         )
+    }
+
+    fun selectType(category: MaterialCategory) {
+        viewModelScope.launch {
+            _uiState.update { 
+                it.copy(
+                    selectedType = category,
+                    availableProducts = emptyList(), // Limpiar productos anteriores
+                    isLoadingProducts = true
+                ) 
+            }
+            
+            // Cargar productos para el tipo seleccionado usando el ID
+            try {
+                val products = repository.getMaterialProductsByType(category.id)
+                _uiState.update { 
+                    it.copy(
+                        availableProducts = products,
+                        isLoadingProducts = false
+                    ) 
+                }
+            } catch (e: Exception) {
+                // En caso de error, mantener la lista vacía
+                _uiState.update { 
+                    it.copy(
+                        availableProducts = emptyList(),
+                        isLoadingProducts = false
+                    ) 
+                }
+            }
+        }
     }
 } 

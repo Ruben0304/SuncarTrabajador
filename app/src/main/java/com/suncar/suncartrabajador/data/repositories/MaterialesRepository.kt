@@ -1,65 +1,66 @@
 package com.suncar.suncartrabajador.data.repositories
 
-import com.suncar.suncartrabajador.domain.models.MaterialType
+
+import com.suncar.suncartrabajador.app.service_implementations.MaterialesApiServices
+import com.suncar.suncartrabajador.domain.models.InitialMaterialesData
 
 import com.suncar.suncartrabajador.domain.models.MaterialProduct
-import kotlinx.coroutines.delay
+import com.suncar.suncartrabajador.domain.models.MaterialCategory
+import android.util.Log
+
 
 class MaterialesRepository {
+    // Configuración de Retrofit
+   private val apiService = MaterialesApiServices().api
 
-    private val materialTypes = listOf(
-        MaterialType("1", "Herramientas"),
-        MaterialType("2", "Equipos de Seguridad"),
-        MaterialType("3", "Materiales de Construcción"),
-        MaterialType("4", "Equipos Electrónicos")
-    )
-
-
-
-    private val materialProducts = listOf(
-        MaterialProduct("1", "Taladro Eléctrico", "1"),
-        MaterialProduct("2", "Sierra Circular", "1"),
-        MaterialProduct("3", "Martillo Demoledor", "1"),
-        MaterialProduct("4", "Atornillador", "2"),
-        MaterialProduct("5", "Lijadora Orbital", "2"),
-        MaterialProduct("6", "Esmeriladora", "2"),
-        MaterialProduct("7", "Casco de Seguridad", "4"),
-        MaterialProduct("8", "Gafas de Protección", "4"),
-        MaterialProduct("9", "Guantes de Trabajo", "4"),
-        MaterialProduct("10", "Chaleco Reflectivo", "5"),
-        MaterialProduct("11", "Botas de Seguridad", "5"),
-        MaterialProduct("12", "Arnés de Seguridad", "6"),
-        MaterialProduct("13", "Cemento Portland", "7"),
-        MaterialProduct("14", "Arena", "7"),
-        MaterialProduct("15", "Grava", "7"),
-        MaterialProduct("16", "Concreto Premezclado", "8"),
-        MaterialProduct("17", "Ladrillos", "8"),
-        MaterialProduct("18", "Bloques", "8"),
-        MaterialProduct("19", "Tablet de Campo", "10"),
-        MaterialProduct("20", "Smartphone Resistente", "10"),
-        MaterialProduct("21", "Cámara Digital", "11"),
-        MaterialProduct("22", "GPS", "11"),
-        MaterialProduct("23", "Radio Comunicación", "12")
-    )
+    // Cache para evitar múltiples llamadas
+    private var cachedMaterialTypes: List<MaterialCategory>? = null
 
     suspend fun getInitialMaterialesData(): InitialMaterialesData {
-        delay(1000) // Simulate network delay
-        return InitialMaterialesData(
-            materialTypes = materialTypes,
-            materialProducts = materialProducts
-        )
+        return try {
+            val categorias = getMaterialTypes()
+            InitialMaterialesData(
+                materialTypes = categorias,
+                materialProducts = emptyList() // Los productos se cargan bajo demanda
+            )
+        } catch (e: Exception) {
+            Log.e("MaterialesRepository", "Error getting initial data: ${e.message}", e)
+            // En caso de error, retornar datos de fallback
+            InitialMaterialesData(
+                materialTypes = emptyList(),
+                materialProducts = emptyList()
+            )
+        }
     }
 
-    fun getMaterialTypes(): List<MaterialType> {
-        return materialTypes
+    suspend fun getMaterialTypes(): List<MaterialCategory> {
+        // Usar cache si está disponible
+        cachedMaterialTypes?.let { return it }
+
+        return try {
+            Log.d("MaterialesRepository", "Fetching material types from API")
+            val categorias = apiService.getCategorias()
+            Log.d("MaterialesRepository", "Received ${categorias.size} material types")
+            cachedMaterialTypes = categorias
+            categorias
+        } catch (e: Exception) {
+            Log.e("MaterialesRepository", "Error fetching material types: ${e.message}", e)
+            // En caso de error, retornar datos de fallback
+           emptyList()
+        }
     }
 
-    fun getMaterialProductsByBrand(brandId: String): List<MaterialProduct> {
-        return materialProducts.filter { it.brandId == brandId }
+    suspend fun getMaterialProductsByType(categoryId: String): List<MaterialProduct> {
+        return try {
+            Log.d("MaterialesRepository", "Fetching products for category ID: $categoryId")
+            
+            val apiMateriales = apiService.getMaterialesByCategoria(categoryId)
+            Log.d("MaterialesRepository", "Received ${apiMateriales.size} products for category ID: $categoryId")
+            apiMateriales
+        } catch (e: Exception) {
+            Log.e("MaterialesRepository", "Error fetching products for category ID $categoryId: ${e.message}", e)
+            // En caso de error, retornar datos de fallback
+            emptyList()
+        }
     }
 }
-
-data class InitialMaterialesData(
-    val materialTypes: List<MaterialType>,
-    val materialProducts: List<MaterialProduct>
-) 

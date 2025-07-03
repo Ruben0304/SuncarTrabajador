@@ -63,7 +63,10 @@ private val DarkColorScheme = darkColorScheme(
     background = SuncarBackgroundDark,
     surface = SuncarSurfaceDark,
     onBackground = SuncarTextLight, // Texto blanco sobre fondo oscuro
-    onSurface = SuncarTextLight
+    onSurface = SuncarTextLight,
+    error = Color.Red,
+    onError = Color.White,
+    errorContainer = Color.Red
 )
 @Composable
 fun SuncarTrabajadorTheme(

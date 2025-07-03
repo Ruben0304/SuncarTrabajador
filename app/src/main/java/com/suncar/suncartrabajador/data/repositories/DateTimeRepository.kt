@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter
 class DateTimeRepository {
 
     suspend fun getInitialDateTimeData(): InitialDateTimeData {
-        delay(500) // Simulate network delay
         val currentDate = LocalDate.now()
         val currentTime = LocalTime.now()
         

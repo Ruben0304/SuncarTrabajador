@@ -5,6 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Remove
@@ -15,8 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.suncar.suncartrabajador.domain.models.MaterialItem
-import com.suncar.suncartrabajador.domain.models.MaterialType
 import com.suncar.suncartrabajador.domain.models.MaterialProduct
+import com.suncar.suncartrabajador.domain.models.MaterialCategory
 import com.suncar.suncartrabajador.ui.components.CustomCard
 import com.suncar.suncartrabajador.ui.components.EmptyStateCard
 
@@ -24,7 +26,8 @@ import com.suncar.suncartrabajador.ui.components.EmptyStateCard
 @Composable
 fun MaterialesComposable(
     modifier: Modifier = Modifier,
-    materialesViewModel: MaterialesViewModel = viewModel()
+    materialesViewModel: MaterialesViewModel = viewModel(),
+    isMantenimiento: Boolean = false
 ) {
     val state by materialesViewModel.uiState.collectAsState()
     var typeExpanded by remember { mutableStateOf(false) }
@@ -34,18 +37,48 @@ fun MaterialesComposable(
 
     CustomCard(
         modifier = modifier.padding(16.dp),
-        title = "Gestión de Materiales",
-        subtitle = "Añade o elimina materiales de tu proyecto",
+        title = "Materiales",
+        subtitle = if (isMantenimiento) "Añade materiales si los utilizaste (opcional)" else "Añade o elimina materiales de tu proyecto",
         icon = Icons.Filled.Inventory,
         isLoading = state.isLoading
     ) {
+        // Mostrar indicador de opcional para mantenimiento
+        if (isMantenimiento) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Opcional",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Los materiales son opcionales en mantenimiento",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Dropdown de tipo de material
         ExposedDropdownMenuBox(
             expanded = typeExpanded,
             onExpandedChange = { typeExpanded = !typeExpanded }
         ) {
             OutlinedTextField(
-                value = state.selectedType?.name ?: "Seleccionar tipo de material",
+                value = state.selectedType?.categoria ?: "Seleccionar tipo de material",
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Tipo de Material") },
@@ -58,11 +91,11 @@ fun MaterialesComposable(
                 expanded = typeExpanded,
                 onDismissRequest = { typeExpanded = false }
             ) {
-                state.materialTypes.forEach { type ->
+                state.materialTypes.forEach { category ->
                     DropdownMenuItem(
-                        text = { Text(type.name) },
+                        text = { Text(category.categoria) },
                         onClick = {
-//                            materialesViewModel.selectType(type)
+                            materialesViewModel.selectType(category)
                             selectedProduct = null
                             typeExpanded = false
                         }
@@ -81,13 +114,20 @@ fun MaterialesComposable(
             }
         ) {
             OutlinedTextField(
-                value = selectedProduct?.name ?: "Seleccionar producto",
+                value = if (state.isLoadingProducts) "Cargando productos..." else (selectedProduct?.descripcion ?: "Seleccionar producto"),
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Producto") },
-                enabled = state.selectedType != null,
+                enabled = state.selectedType != null && !state.isLoadingProducts,
                 trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = productExpanded)
+                    if (state.isLoadingProducts) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = productExpanded)
+                    }
                 },
                 modifier = Modifier.menuAnchor().fillMaxWidth()
             )
@@ -95,14 +135,21 @@ fun MaterialesComposable(
                 expanded = productExpanded,
                 onDismissRequest = { productExpanded = false }
             ) {
-                state.availableProducts.forEach { product ->
+                if (state.isLoadingProducts) {
                     DropdownMenuItem(
-                        text = { Text(product.name) },
-                        onClick = {
-                            selectedProduct = product
-                            productExpanded = false
-                        }
+                        text = { Text("Cargando productos...") },
+                        onClick = { }
                     )
+                } else {
+                    state.availableProducts.forEach { product ->
+                        DropdownMenuItem(
+                            text = { Text(product.descripcion) },
+                            onClick = {
+                                selectedProduct = product
+                                productExpanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -142,6 +189,15 @@ fun MaterialesComposable(
                 )
             )
             
+            // Mostrar unidad de medida si hay producto seleccionado
+            if (selectedProduct != null) {
+                Text(
+                    text = selectedProduct!!.um,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+            
             IconButton(
                 onClick = { quantity++ },
                 enabled = selectedProduct != null
@@ -157,9 +213,11 @@ fun MaterialesComposable(
             onClick = {
                 if (state.selectedType != null && selectedProduct != null) {
                     val newMaterial = MaterialItem(
-                        type = state.selectedType!!.name,
-                        name = selectedProduct!!.name,
-                        quantity = quantity.toString()
+                        type = state.selectedType!!.categoria,
+                        name = selectedProduct!!.descripcion,
+                        quantity = quantity.toString(),
+                        unit = selectedProduct!!.um,
+                        productCode = selectedProduct!!.codigo
                     )
                     materialesViewModel.updateMaterials(state.materials + newMaterial)
                     // Limpiar selección
@@ -170,9 +228,9 @@ fun MaterialesComposable(
             enabled = state.selectedType != null && selectedProduct != null,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Agregar material")
+            Icon(Icons.Default.Check, contentDescription = "Agregar material")
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Agregar material")
+            Text("Aceptar")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -220,7 +278,7 @@ fun MaterialItemRow(
             Column {
                 Text(text = material.name)
                 Text(text = "Tipo: ${material.type}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Cantidad: ${material.quantity}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Cantidad: ${material.quantity} ${material.unit}", style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = onRemoveClick) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar material")

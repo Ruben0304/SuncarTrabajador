@@ -16,7 +16,6 @@ class BrigadaRepository {
 
 
     suspend fun getInitialBrigadaData(): InitialBrigadaData {
-        delay(1000) // Simulate network delay
         val defaultLeader = allTeamMembers.first()
         val defaultBrigade = allTeamMembers.drop(1).take(2)
         val availableMembers = allTeamMembers.filter { m -> m.id != defaultLeader.id }

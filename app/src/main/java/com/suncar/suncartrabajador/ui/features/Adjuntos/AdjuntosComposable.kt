@@ -8,20 +8,24 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.suncar.suncartrabajador.ui.components.CustomCard
 import com.suncar.suncartrabajador.ui.components.EmptyStateCard
+import com.suncar.suncartrabajador.ui.features.Adjuntos.ComposeFileProvider
 
 @Composable
 fun AdjuntosComposable(
     modifier: Modifier = Modifier,
-    adjuntosViewModel: AdjuntosViewModel = viewModel()
+    adjuntosViewModel: AdjuntosViewModel = viewModel(),
+    isMantenimiento: Boolean = false
 ) {
     val state by adjuntosViewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -93,11 +97,41 @@ fun AdjuntosComposable(
 
     CustomCard(
         modifier = modifier.padding(16.dp),
-        title = "Gestión de Adjuntos",
-        subtitle = "Añade fotos de inicio y fin del proyecto",
+        title = "Fotos",
+        subtitle = if (isMantenimiento) "Añade fotos si las tienes disponibles (opcional)" else "Añade fotos de inicio y fin del proyecto",
         icon = Icons.Filled.AttachFile,
         isLoading = state.isLoading
     ) {
+        // Mostrar indicador de opcional para mantenimiento
+        if (isMantenimiento) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Opcional",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Las fotos son opcionales en mantenimiento",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Sección de fotos de inicio
         AttachmentSection(
             title = "Fotos de Inicio del Proyecto",
@@ -122,7 +156,7 @@ fun AdjuntosComposable(
         if (state.startAttachments.isEmpty() && state.endAttachments.isEmpty()) {
             EmptyStateCard(
                 title = "No hay adjuntos",
-                description = "Usa los botones para añadir fotos del proyecto.",
+                description = if (isMantenimiento) "Las fotos son opcionales. Puedes añadirlas si las tienes disponibles." else "Usa los botones para añadir fotos del proyecto.",
                 icon = Icons.Filled.PhotoLibrary
             )
         }

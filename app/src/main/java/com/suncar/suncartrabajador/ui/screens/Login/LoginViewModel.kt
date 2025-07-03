@@ -1,9 +1,12 @@
 package com.suncar.suncartrabajador.ui.screens.Login
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.suncar.suncartrabajador.data.repositories.AuthRepository
-import com.suncar.suncartrabajador.data.repositories.LoginResult
+import com.suncar.suncartrabajador.app.service_implementations.AuthService
+import com.suncar.suncartrabajador.data.local.SessionManager
+import com.suncar.suncartrabajador.data.schemas.LoginResponse
+import com.suncar.suncartrabajador.singleton.Auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +16,12 @@ import kotlinx.coroutines.launch
 class LoginViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(LoginState())
     val uiState: StateFlow<LoginState> = _uiState.asStateFlow()
-    private val repository = AuthRepository()
+    private val authService = AuthService()
+    private var sessionManager: SessionManager? = null
+
+    fun initializeSessionManager(context: Context) {
+        sessionManager = SessionManager(context)
+    }
 
     fun updateCi(ci: String) {
         _uiState.update { it.copy(ci = ci, errorMessage = null) }
@@ -27,51 +35,52 @@ class LoginViewModel : ViewModel() {
         _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
     }
 
-    fun login() {
+    fun login(function: () -> Unit) {
         val currentState = _uiState.value
         
         // Usar el LoginValidator para validar el formulario
         when (val validationResult = LoginValidator.validateLoginForm(currentState.ci, currentState.password)) {
             is ValidationResult.Error -> {
-                _uiState.update { it.copy(errorMessage = validationResult.message) }
+                _uiState.update { it.copy(errorMessage = validationResult.message, loginSuccess = false) }
                 return
             }
             is ValidationResult.Success -> {
-                // Continuar con el login si la validación es exitosa
+
             }
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, loginSuccess = false) }
             
             try {
-                val result = repository.login(currentState.ci, currentState.password)
+                val response: LoginResponse = authService.login(currentState.ci, currentState.password)
                 
-                when (result) {
-                    is LoginResult.Success -> {
-                        // Login exitoso - aquí podrías navegar a la siguiente pantalla
-                        _uiState.update { 
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = null
-                            )
-                        }
-                        // TODO: Implementar navegación a la pantalla principal
+                if (response.success && response.brigada != null) {
+                    // Guardar sesión automáticamente
+                    sessionManager?.saveSession(currentState.ci, currentState.password)
+                    
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = null,
+                            loginSuccess = true
+                        )
                     }
-                    is LoginResult.Error -> {
-                        _uiState.update { 
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.message
-                            )
-                        }
+                } else {
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = response.message,
+                            loginSuccess = false
+                        )
                     }
                 }
             } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error de conexión. Intente nuevamente."
+                        errorMessage = "Error inesperado. ${e.message}",
+                        loginSuccess = false
                     )
                 }
             }
@@ -80,5 +89,42 @@ class LoginViewModel : ViewModel() {
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    /**
+     * Verifica si hay una sesión almacenada y la carga automáticamente
+     */
+    fun checkStoredSession(): Boolean {
+        val session = sessionManager?.getSession()
+        return if (session != null) {
+            _uiState.update { 
+                it.copy(
+                    ci = session.ci,
+                    password = session.password
+                )
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Cierra la sesión almacenada
+     */
+    fun logout() {
+        sessionManager?.clearSession()
+        Auth.logout()
+    }
+
+    /**
+     * Método estático para cerrar sesión desde cualquier parte de la aplicación
+     */
+    companion object {
+        fun logoutFromAnywhere(context: Context) {
+            val sessionManager = SessionManager(context)
+            sessionManager.clearSession()
+            Auth.logout()
+        }
     }
 } 

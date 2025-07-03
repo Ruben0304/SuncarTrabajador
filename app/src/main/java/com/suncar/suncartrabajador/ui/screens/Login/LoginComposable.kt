@@ -26,16 +26,40 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.suncar.suncartrabajador.R
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginComposable(
     modifier: Modifier = Modifier,
-    loginViewModel: LoginViewModel = viewModel()
+    onLoginSuccess: () -> Unit,
+    loginViewModel: LoginViewModel = viewModel(),
 ) {
     val state by loginViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    // Inicializar SessionManager y verificar sesión existente
+    LaunchedEffect(Unit) {
+        loginViewModel.initializeSessionManager(context)
+        
+        // Verificar si hay una sesión almacenada
+        if (loginViewModel.checkStoredSession()) {
+            // Si hay sesión almacenada, intentar hacer login automáticamente
+            loginViewModel.login({})
+        }
+    }
+
+    // Manejar el éxito del login de manera asíncrona
+    LaunchedEffect(state.loginSuccess) {
+        if (state.loginSuccess) {
+            // Pequeña pausa para permitir que la UI se actualice
+            delay(100)
+            onLoginSuccess()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -95,7 +119,7 @@ fun LoginComposable(
                 onCiChange = loginViewModel::updateCi,
                 onPasswordChange = loginViewModel::updatePassword,
                 onTogglePasswordVisibility = loginViewModel::togglePasswordVisibility,
-                onLogin = loginViewModel::login
+                onLogin = { loginViewModel.login({}) } // Removemos el callback directo
             )
 
             Spacer(modifier = Modifier.height(24.dp))

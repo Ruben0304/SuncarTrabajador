@@ -11,6 +11,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ElectricBolt
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,9 +76,9 @@ private fun CardsSection(
     ) {
         // Avería
         EnhancedOptionCard(
-            icon = Icons.Default.Warning,
+            icon = Icons.Default.Report,
             title = "Avería o Queja",
-            description = "",
+            description = "Reporta reparaciones o atención a quejas realizadas",
             gradientColors = listOf(
                 Color(0xFFFF6B6B).copy(alpha = 0.1f),
                 Color(0xFFFF8E8E).copy(alpha = 0.05f)
@@ -85,9 +89,9 @@ private fun CardsSection(
 
         // Operación
         EnhancedOptionCard(
-            icon = Icons.Default.Assessment,
+            icon = Icons.Default.Settings,
             title = "Mantenimiento",
-            description = "",
+            description = "Reporta trabajos de mantenimiento realizados",
             gradientColors = listOf(
                 Color(0xFF4ECDC4).copy(alpha = 0.1f),
                 Color(0xFF7FDBDA).copy(alpha = 0.05f)
@@ -98,9 +102,9 @@ private fun CardsSection(
 
         // Inversión
         EnhancedOptionCard(
-            icon = Icons.Default.Build,
+            icon = Icons.Default.ElectricBolt,
             title = "Inversión",
-            description = "",
+            description = "Reporta instalaciones de equipos completadas",
             gradientColors = listOf(
                 Color(0xFF45B7D1).copy(alpha = 0.1f),
                 Color(0xFF96CDF0).copy(alpha = 0.05f)
@@ -163,7 +167,7 @@ fun EnhancedOptionCard(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Contenedor del ícono con fondo circular
@@ -184,7 +188,7 @@ fun EnhancedOptionCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(20.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Column(
                     modifier = Modifier.weight(1f)
@@ -198,21 +202,23 @@ fun EnhancedOptionCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = description,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = 14.sp,
-                            lineHeight = 20.sp
+                            lineHeight = 18.sp
                         ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
 
                 // Indicador visual de navegación
                 Icon(
-                    imageVector = Icons.Default.Assessment, // Puedes usar ChevronRight si está disponible
+                    imageVector = Icons.Default.ArrowForward,
                     contentDescription = "Ir a $title",
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
