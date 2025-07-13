@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +39,8 @@ fun CuentaConfigScreen(
     var showManualForm by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
     var expandedBrigada by remember { mutableStateOf(false) }
+    var newPassword by remember { mutableStateOf(TextFieldValue("")) }
+    var newPasswordError by remember { mutableStateOf<String?>(null) }
 
     LazyColumn(
         modifier = modifier
@@ -63,7 +66,8 @@ fun CuentaConfigScreen(
         // Opciones de cuenta
         item {
             AccountOptionsCard(
-                onLogout = { brigadaViewModel.showLogoutDialog() }
+                onLogout = { brigadaViewModel.showLogoutDialog() },
+                onChangePassword = { brigadaViewModel.showChangePasswordDialog() }
             )
         }
 
@@ -119,6 +123,69 @@ fun CuentaConfigScreen(
             onConfirm = { brigadaViewModel.logout(context, onLogout) },
             onDismiss = { brigadaViewModel.hideLogoutDialog() }
         )
+    }
+
+    // Diálogo de cambio de contraseña
+    if (state.showChangePasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { brigadaViewModel.hideChangePasswordDialog() },
+            title = { Text("Cambiar Contraseña") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = {
+                            newPassword = it
+                            newPasswordError = null
+                        },
+                        label = { Text("Nueva contraseña") },
+                        isError = newPasswordError != null,
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true
+                    )
+                    if (newPasswordError != null) {
+                        Text(newPasswordError!!, color = MaterialTheme.colorScheme.error)
+                    }
+                    if (state.isChangingPassword) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    if (state.changePasswordError != null) {
+                        Text(state.changePasswordError!!, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newPassword.text.length < 6) {
+                            newPasswordError = "La contraseña debe tener al menos 6 caracteres"
+                        } else {
+                            brigadaViewModel.changePassword(newPassword.text)
+                        }
+                    },
+                    enabled = !state.isChangingPassword
+                ) { Text("Cambiar") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { brigadaViewModel.hideChangePasswordDialog() },
+                    enabled = !state.isChangingPassword
+                ) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // Mensaje de éxito
+    if (state.changePasswordSuccess == true) {
+        LaunchedEffect(state.changePasswordSuccess) {
+            newPassword = TextFieldValue("")
+        }
+        Snackbar(
+            modifier = Modifier.padding(16.dp),
+            action = {
+                TextButton(onClick = { brigadaViewModel.hideChangePasswordDialog() }) { Text("OK") }
+            }
+        ) { Text("Contraseña cambiada exitosamente") }
     }
 }
 
@@ -232,7 +299,8 @@ fun AccountInfoItem(
 
 @Composable
 fun AccountOptionsCard(
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onChangePassword: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -255,7 +323,7 @@ fun AccountOptionsCard(
                 icon = Icons.Default.Key,
                 title = "Cambiar Contraseña",
                 subtitle = "Actualiza tu contraseña de acceso",
-                onClick = { /* TODO: Implementar cambio de contraseña */ }
+                onClick = onChangePassword
             )
 
             Spacer(modifier = Modifier.height(12.dp))

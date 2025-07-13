@@ -119,7 +119,7 @@ fun LoginComposable(
                 onCiChange = loginViewModel::updateCi,
                 onPasswordChange = loginViewModel::updatePassword,
                 onTogglePasswordVisibility = loginViewModel::togglePasswordVisibility,
-                onLogin = { loginViewModel.login({}) } // Removemos el callback directo
+                onLogin = { loginViewModel.login { } } // Removemos el callback directo
             )
 
             Spacer(modifier = Modifier.height(24.dp))

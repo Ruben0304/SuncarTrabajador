@@ -1,5 +1,7 @@
 package com.suncar.suncartrabajador.ui.features.DateTime
 
+import android.app.TimePickerDialog
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +32,10 @@ fun DateTimeComposable(
     val state by dateTimeViewModel.uiState.collectAsState()
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val isModernPicker = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    var showNativeStartPicker by remember { mutableStateOf(false) }
+    var showNativeEndPicker by remember { mutableStateOf(false) }
 
     CustomCard(
         modifier = modifier.padding(16.dp),
@@ -74,7 +81,9 @@ fun DateTimeComposable(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = { showStartTimePicker = true }) {
+            Button(onClick = {
+                if (isModernPicker) showStartTimePicker = true else showNativeStartPicker = true
+            }) {
                 Text("Cambiar")
             }
         }
@@ -99,7 +108,9 @@ fun DateTimeComposable(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = { showEndTimePicker = true }) {
+            Button(onClick = {
+                if (isModernPicker) showEndTimePicker = true else showNativeEndPicker = true
+            }) {
                 Text("Cambiar")
             }
 
@@ -116,7 +127,7 @@ fun DateTimeComposable(
 
             val duration = java.time.Duration.between(state.startTime, state.endTime)
             val hours = duration.toHours()
-            val minutes = duration.toMinutesPart()
+            val minutes = duration.toMinutes() % 60
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -146,14 +157,13 @@ fun DateTimeComposable(
         }
     }
 
-    // Time picker para hora de inicio
-    if (showStartTimePicker) {
+    // Time picker para hora de inicio (MODERNO)
+    if (showStartTimePicker && isModernPicker) {
         val currentTime = state.startTime ?: java.time.LocalTime.now()
         val timePickerState = rememberTimePickerState(
             initialHour = currentTime.hour,
             initialMinute = currentTime.minute
         )
-
         AlertDialog(
             onDismissRequest = { showStartTimePicker = false },
             title = { Text("Seleccionar Hora de Inicio") },
@@ -183,14 +193,13 @@ fun DateTimeComposable(
         )
     }
 
-    // Time picker para hora de fin
-    if (showEndTimePicker) {
+    // Time picker para hora de fin (MODERNO)
+    if (showEndTimePicker && isModernPicker) {
         val currentTime = state.endTime ?: java.time.LocalTime.now()
         val timePickerState = rememberTimePickerState(
             initialHour = currentTime.hour,
             initialMinute = currentTime.minute
         )
-
         AlertDialog(
             onDismissRequest = { showEndTimePicker = false },
             title = { Text("Seleccionar Hora de Fin") },
@@ -218,5 +227,47 @@ fun DateTimeComposable(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             modifier = Modifier.fillMaxWidth(0.9f)
         )
+    }
+
+    // TimePickerDialog nativo para hora de inicio (LEGACY)
+    if (showNativeStartPicker && !isModernPicker) {
+        val currentTime = state.startTime ?: java.time.LocalTime.now()
+        DisposableEffect(showNativeStartPicker) {
+            if (showNativeStartPicker) {
+                val dialog = TimePickerDialog(
+                    context,
+                    { _, hour: Int, minute: Int ->
+                        dateTimeViewModel.updateStartTime(hour, minute)
+                    },
+                    currentTime.hour,
+                    currentTime.minute,
+                    false
+                )
+                dialog.setOnDismissListener { showNativeStartPicker = false }
+                dialog.show()
+            }
+            onDispose { }
+        }
+    }
+
+    // TimePickerDialog nativo para hora de fin (LEGACY)
+    if (showNativeEndPicker && !isModernPicker) {
+        val currentTime = state.endTime ?: java.time.LocalTime.now()
+        DisposableEffect(showNativeEndPicker) {
+            if (showNativeEndPicker) {
+                val dialog = TimePickerDialog(
+                    context,
+                    { _, hour: Int, minute: Int ->
+                        dateTimeViewModel.updateEndTime(hour, minute)
+                    },
+                    currentTime.hour,
+                    currentTime.minute,
+                    false
+                )
+                dialog.setOnDismissListener { showNativeEndPicker = false }
+                dialog.show()
+            }
+            onDispose { }
+        }
     }
 }
