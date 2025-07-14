@@ -1,9 +1,9 @@
 package com.suncar.suncartrabajador.app.service_implementations
 
 import com.suncar.suncartrabajador.data.http.RetrofitClient
+import com.suncar.suncartrabajador.data.schemas.ChangePasswordRequest
 import com.suncar.suncartrabajador.data.schemas.LoginRequest
 import com.suncar.suncartrabajador.data.schemas.LoginResponse
-import com.suncar.suncartrabajador.data.schemas.ChangePasswordRequest
 import com.suncar.suncartrabajador.data.services.AuthApiService
 import com.suncar.suncartrabajador.domain.models.Brigada
 import com.suncar.suncartrabajador.domain.models.TeamMember
@@ -21,18 +21,29 @@ class AuthService {
 
             if (response.success) {
                 // Crear el usuario con la información de la brigada
-                val user = User(
-                    ci = ci,
-                    name = response.brigada?.lider?.name ?: "Administrador",
-                    password = contraseña,
-                    brigada = response.brigada ?: Brigada(lider = TeamMember(name = "Administrador", id="000000000"), integrantes = emptyList())
-                )
+                val user =
+                        User(
+                                ci = ci,
+                                name = response.brigada?.lider?.name ?: "Administrador",
+                                password = contraseña,
+                                brigada = response.brigada
+                                                ?: Brigada(
+                                                        lider =
+                                                                TeamMember(
+                                                                        name = "Administrador",
+                                                                        id = "000000000"
+                                                                ),
+                                                        integrantes = emptyList()
+                                                )
+                        )
                 Auth.setUser(user)
             }
             response
-
         } catch (e: IOException) {
-            LoginResponse(success = false, message = "Error de conexión: Verifique su conexión a internet")
+            LoginResponse(
+                    success = false,
+                    message = "Error de conexión: Verifique su conexión a internet"
+            )
         } catch (e: Exception) {
             LoginResponse(success = false, message = "Error inesperado: ${e.message}")
         }
@@ -41,7 +52,8 @@ class AuthService {
     suspend fun changePassword(ci: String, nuevaContrasena: String): Boolean {
         return try {
             val request = ChangePasswordRequest(ci, nuevaContrasena)
-            authApiService.changePassword(request)
+            val response = authApiService.changePassword(request)
+            response.success
         } catch (e: IOException) {
             false
         } catch (e: Exception) {
