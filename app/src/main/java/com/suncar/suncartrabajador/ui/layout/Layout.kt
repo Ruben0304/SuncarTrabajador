@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -20,147 +19,63 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen
-
-import com.suncar.suncartrabajador.ui.screens.ListadoReportes.ListadoReportesComposable
-import com.suncar.suncartrabajador.ui.screens.Nuevo.NuevoComposable
-import com.suncar.suncartrabajador.ui.reportes.Inversion.InversionScreen
-import com.suncar.suncartrabajador.ui.reportes.Mantenimiento.MantenimientoScreen
-import com.suncar.suncartrabajador.ui.screens.Cuenta.CuentaConfigScreen
-
+import androidx.navigation.NavController
 
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainAppContent(
-    onLogout: () -> Unit = {}
-) {
-    var currentDestination by remember { mutableStateOf(AppDestinations.REPORTS) }
-    var currentScreen by remember { mutableStateOf<Screen?>(null) }
+fun MainAppContent(navController: NavController, onLogout: () -> Unit = {}) {
+    val destinations =
+            listOf(
+                    Triple("main_app/reports", "Reportes", Icons.Default.Assessment),
+                    Triple("main_app/nuevo", "Nuevo", Icons.Default.Add),
+                    Triple("main_app/cuenta", "Cuenta", Icons.Default.AccountCircle)
+            )
+    val currentRoute = navController.currentBackStackEntry?.destination?.route
 
     Scaffold(
-        topBar = {
-            TopAppBarCustom(
-                onBackPressed = {
-                    if (currentScreen != null) {
-                        currentScreen = null
-                    }
-                },
-                showBackButton = currentScreen != null
-            )
-        },
-        bottomBar = {
-            // Solo mostrar bottom bar si no estamos en una pantalla específica
-            if (currentScreen == null) {
-                BottomAppBar(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    actions = {
-                        AppDestinations.entries.forEach { destination ->
-                            NavigationBarItem(
-                                colors = NavigationBarItemDefaults.colors(
-                                    MaterialTheme.colorScheme.onPrimary,
-                                    MaterialTheme.colorScheme.onSurface,
-                                    MaterialTheme.colorScheme.primary
-                                ),
-                                icon = {
-                                    Icon(
-                                        destination.icon,
-                                        contentDescription = destination.label
-                                    )
-                                },
-                                label = { Text(destination.label) },
-                                selected = currentDestination == destination,
-                                onClick = { currentDestination = destination }
-                            )
-                        }
-                    }
+            topBar = {
+                TopAppBarCustom(
+                        onBackPressed = { navController.popBackStack() },
+                        showBackButton = navController.previousBackStackEntry != null
                 )
-            }
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // Contenido principal basado en la navegación
-            when {
-                currentScreen != null -> {
-                    when (currentScreen) {
-                        Screen.INVERSION -> {
-                            InversionScreen(
-                                onBackPressed = { currentScreen = null },
-                                onSubmit = {
-                                    // TODO: Implementar lógica de envío
-                                    currentScreen = null
+            },
+            bottomBar = {
+                if (currentRoute in destinations.map { it.first }) {
+                    BottomAppBar(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            actions = {
+                                destinations.forEach { (route, label, icon) ->
+                                    NavigationBarItem(
+                                            colors =
+                                                    NavigationBarItemDefaults.colors(
+                                                            MaterialTheme.colorScheme.onPrimary,
+                                                            MaterialTheme.colorScheme.onSurface,
+                                                            MaterialTheme.colorScheme.primary
+                                                    ),
+                                            icon = { Icon(icon, contentDescription = label) },
+                                            label = { Text(label) },
+                                            selected = currentRoute == route,
+                                            onClick = {
+                                                if (currentRoute != route) {
+                                                    navController.navigate(route) {
+                                                        popUpTo("main_app/reports") {
+                                                            inclusive = false
+                                                        }
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            }
+                                    )
                                 }
-                            )
-                        }
-                        // Agregar más pantallas aquí según sea necesario
-                        Screen.MANTENIMIENTO -> MantenimientoScreen(
-                            onBackPressed = { currentScreen = null },
-                            onSubmit = {
-                                // TODO: Implementar lógica de envío
-                                currentScreen = null
                             }
-                        )
-
-                        Screen.AVERIA -> AveriaScreen(
-                            onBackPressed = { currentScreen = null },
-                            onSubmit = {
-                                // TODO: Implementar lógica de envío
-                                currentScreen = null
-                            }
-                        )
-
-                        null -> TODO()
-                    }
-                }
-
-                currentDestination == AppDestinations.REPORTS -> {
-                    ListadoReportesComposable(
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                currentDestination == AppDestinations.NUEVO -> {
-                    NuevoComposable(
-                        modifier = Modifier.fillMaxSize(),
-                        onNavigateToInversion = { currentScreen = Screen.INVERSION },
-                        onNavigateToAveria = { currentScreen = Screen.AVERIA },
-                        onNavigateToOperacion = { currentScreen = Screen.MANTENIMIENTO }
-                    )
-                }
-
-                currentDestination == AppDestinations.BRIGADA -> {
-                    CuentaConfigScreen(
-                        modifier = Modifier.fillMaxSize(),
-                        onLogout = onLogout
                     )
                 }
             }
-        }
+    ) { innerPadding ->
+        // El contenido real se maneja ahora en el NavHost de MainActivity
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {}
     }
 }
-
-enum class AppDestinations(
-    val label: String,
-    val icon: ImageVector
-) {
-    REPORTS("Reportes", Icons.Default.Assessment),
-    NUEVO("Nuevo", Icons.Default.Add),
-    BRIGADA("Cuenta", Icons.Default.AccountCircle),
-}
-
-enum class Screen {
-    INVERSION,
-    MANTENIMIENTO,
-    AVERIA
-}
-
-

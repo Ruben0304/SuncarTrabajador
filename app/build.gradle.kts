@@ -71,4 +71,6 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.androidx.navigation.compose)
+//    implementation(libs.signature.pad)
 }

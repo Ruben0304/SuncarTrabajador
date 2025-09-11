@@ -25,16 +25,12 @@ class ComposeFileProvider : FileProvider() {
         fun getImageUri(context: Context): Uri {
             val directory = File(context.cacheDir, "images")
             directory.mkdirs()
-            val file = File.createTempFile(
-                "selected_image_",
-                ".jpg",
-                directory
-            )
-            val authority = context.packageName + ".provider"
+            val file = File.createTempFile("selected_image_", ".jpg", directory)
+            val authority = context.packageName + ".fileprovider"
             return getUriForFile(
-                context,
-                authority,
-                file,
+                    context,
+                    authority,
+                    file,
             )
         }
     }
@@ -42,50 +38,45 @@ class ComposeFileProvider : FileProvider() {
 
 @Composable
 fun AttachmentSection(
-    title: String,
-    attachments: List<Uri>,
-    onAddAttachmentClick: () -> Unit,
-    onRemoveAttachment: (Uri) -> Unit
+        title: String,
+        attachments: List<Uri>,
+        onAddAttachmentClick: () -> Unit,
+        onRemoveAttachment: (Uri) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(text = title, style = MaterialTheme.typography.titleMedium)
-        OutlinedButton(
-            onClick = onAddAttachmentClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        OutlinedButton(onClick = onAddAttachmentClick, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.CameraAlt, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Añadir Foto")
         }
 
         if (attachments.isNotEmpty()) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(attachments) { uri ->
-                    Card(
-                        modifier = Modifier.size(120.dp)
-                    ) {
+                    Card(modifier = Modifier.size(120.dp)) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             AsyncImage(
-                                model = uri,
-                                contentDescription = "Imagen adjunta",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                    model = uri,
+                                    contentDescription = "Imagen adjunta",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
                             )
                             IconButton(
-                                onClick = { onRemoveAttachment(uri) },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .background(
-                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                                        shape = MaterialTheme.shapes.small
-                                    )
+                                    onClick = { onRemoveAttachment(uri) },
+                                    modifier =
+                                            Modifier.align(Alignment.TopEnd)
+                                                    .background(
+                                                            MaterialTheme.colorScheme.surface.copy(
+                                                                    alpha = 0.5f
+                                                            ),
+                                                            shape = MaterialTheme.shapes.small
+                                                    )
                             ) {
                                 Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Eliminar",
-                                    tint = MaterialTheme.colorScheme.error
+                                        Icons.Default.Close,
+                                        contentDescription = "Eliminar",
+                                        tint = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
@@ -94,4 +85,4 @@ fun AttachmentSection(
             }
         }
     }
-} 
+}

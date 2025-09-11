@@ -1,79 +1,50 @@
 package com.suncar.suncartrabajador
 
 import android.app.Activity
+import android.app.Application
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.suncar.suncartrabajador.ui.screens.Login.LoginComposable
-import com.suncar.suncartrabajador.ui.layout.MainAppContent
-import com.suncar.suncartrabajador.ui.theme.SuncarTrabajadorTheme
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
-import com.suncar.suncartrabajador.app.service_implementations.AuthService
-import com.suncar.suncartrabajador.ui.shared.AdvancedLottieAnimation
-import com.suncar.suncartrabajador.ui.features.DatosIniciales.DatosInicialesComposable
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.suncar.suncartrabajador.singleton.Auth
-import com.suncar.suncartrabajador.data.local.SessionManager
-import com.suncar.suncartrabajador.domain.models.User
-import com.suncar.suncartrabajador.ui.navigation.AppNavigationViewModel
-import com.suncar.suncartrabajador.ui.navigation.AppScreen
+import com.suncar.suncartrabajador.ui.features.DatosIniciales.DatosInicialesComposable
+import com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen
+import com.suncar.suncartrabajador.ui.reportes.Inversion.InversionScreen
+import com.suncar.suncartrabajador.ui.reportes.Mantenimiento.MantenimientoScreen
+import com.suncar.suncartrabajador.ui.screens.Cuenta.CuentaConfigScreen
+import com.suncar.suncartrabajador.ui.screens.ListadoReportes.ListadoReportesComposable
+import com.suncar.suncartrabajador.ui.screens.Login.LoginComposable
+import com.suncar.suncartrabajador.ui.screens.Nuevo.NuevoComposable
+import com.suncar.suncartrabajador.ui.theme.SuncarTrabajadorTheme
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.S)
@@ -89,7 +60,8 @@ class MainActivity : ComponentActivity() {
                     WindowCompat.setDecorFitsSystemWindows(window, false)
                     WindowInsetsControllerCompat(window, window.decorView).let { controller ->
                         controller.hide(WindowInsetsCompat.Type.navigationBars())
-                        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                        controller.systemBarsBehavior =
+                                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
                 }
                 SuncarTrabajadorApp()
@@ -98,62 +70,310 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
 @RequiresApi(Build.VERSION_CODES.S)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 @Preview
 fun SuncarTrabajadorApp() {
-    val navigationViewModel: AppNavigationViewModel = viewModel()
-    val currentScreen by navigationViewModel.currentScreen.collectAsState()
-
-    LaunchedEffect(Unit) {
-        navigationViewModel.navigateTo(AppScreen.LOADING_DATA)
-    }
-
-    AnimatedContent(
-        targetState = currentScreen,
-        transitionSpec = {
-            slideInHorizontally(
-                animationSpec = tween(300),
-                initialOffsetX = { fullWidth -> fullWidth }
-            ) + fadeIn(
-                animationSpec = tween(300)
-            ) togetherWith slideOutHorizontally(
-                animationSpec = tween(300),
-                targetOffsetX = { fullWidth -> -fullWidth }
-            ) + fadeOut(
-                animationSpec = tween(300)
+    val navController = rememberNavController()
+    val destinations =
+            listOf(
+                    Triple(
+                            "main_app/reports",
+                            "Reportes",
+                            androidx.compose.material.icons.Icons.Default.Assessment
+                    ),
+                    Triple(
+                            "main_app/nuevo",
+                            "Nuevo",
+                            androidx.compose.material.icons.Icons.Default.Add
+                    ),
+                    Triple(
+                            "main_app/cuenta",
+                            "Cuenta",
+                            androidx.compose.material.icons.Icons.Default.AccountCircle
+                    )
             )
-        }
-    ) { screen ->
-        when (screen) {
-            AppScreen.LOADING_DATA -> {
-                DatosInicialesComposable(
-                    modifier = Modifier.fillMaxSize(),
-                    onDataLoadComplete = {
-                        if (Auth.isUserAuthenticated())
-                            navigationViewModel.navigateTo(AppScreen.MAIN_APP)
-                        else
-                            navigationViewModel.navigateTo((AppScreen.LOGIN))
-                    }
-                )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val topBarRoutes =
+            destinations.map { it.first } +
+                    listOf(
+                            "main_app/nuevo/averia",
+                            "main_app/nuevo/mantenimiento",
+                            "main_app/nuevo/inversion"
+                    )
+
+    // Configuración de animaciones
+    val animationDuration = 300 // Duración en milisegundos
+
+    // Animación de slide horizontal (para navegación principal)
+    val slideHorizontalTransition =
+            slideInHorizontally(animationSpec = tween(animationDuration), initialOffsetX = { it }) +
+                    fadeIn(animationSpec = tween(animationDuration)) with
+                    slideOutHorizontally(
+                            animationSpec = tween(animationDuration),
+                            targetOffsetX = { -it }
+                    ) + fadeOut(animationSpec = tween(animationDuration))
+
+    // Animación de slide vertical (para reportes)
+    val slideVerticalTransition =
+            slideInVertically(animationSpec = tween(animationDuration), initialOffsetY = { it }) +
+                    fadeIn(animationSpec = tween(animationDuration)) with
+                    slideOutVertically(
+                            animationSpec = tween(animationDuration),
+                            targetOffsetY = { -it }
+                    ) + fadeOut(animationSpec = tween(animationDuration))
+
+    // Animación de fade (para login y carga)
+    val fadeTransition =
+            fadeIn(animationSpec = tween(animationDuration)) with
+                    fadeOut(animationSpec = tween(animationDuration))
+
+    Scaffold(
+            topBar = {
+                if (currentRoute in topBarRoutes) {
+                    com.suncar.suncartrabajador.ui.layout.TopAppBarCustom(
+                            onBackPressed = { navController.popBackStack() },
+                            showBackButton = navController.previousBackStackEntry != null
+                    )
+                }
+            },
+            bottomBar = {
+                if (currentRoute in destinations.map { it.first }) {
+                    androidx.compose.material3.BottomAppBar(
+                            containerColor =
+                                    androidx.compose.material3.MaterialTheme.colorScheme.background,
+                            actions = {
+                                destinations.forEach { (route, label, icon) ->
+                                    NavigationBarItem(
+                                            colors =
+                                                    androidx.compose.material3
+                                                            .NavigationBarItemDefaults.colors(
+                                                            androidx.compose.material3.MaterialTheme
+                                                                    .colorScheme
+                                                                    .onPrimary,
+                                                            androidx.compose.material3.MaterialTheme
+                                                                    .colorScheme
+                                                                    .onSurface,
+                                                            androidx.compose.material3.MaterialTheme
+                                                                    .colorScheme
+                                                                    .primary
+                                                    ),
+                                            icon = {
+                                                androidx.compose.material3.Icon(
+                                                        icon,
+                                                        contentDescription = label
+                                                )
+                                            },
+                                            label = { androidx.compose.material3.Text(label) },
+                                            selected = currentRoute == route,
+                                            onClick = {
+                                                if (currentRoute != route) {
+                                                    navController.navigate(route) {
+                                                        popUpTo("main_app/reports") {
+                                                            inclusive = false
+                                                        }
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            }
+                                    )
+                                }
+                            }
+                    )
+                }
             }
-            AppScreen.LOGIN -> {
-                LoginComposable(
-                    modifier = Modifier.fillMaxSize(),
-                    onLoginSuccess = {
-                        navigationViewModel.navigateTo(AppScreen.LOADING_DATA)
-                    }
-                )
-            }
-            AppScreen.MAIN_APP -> {
-                MainAppContent(
-                    onLogout = {
-                        navigationViewModel.logout()
-                    }
-                )
+    ) { innerPadding ->
+        androidx.compose.foundation.layout.Box(
+                modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+            NavHost(navController = navController, startDestination = "loading_data") {
+                // Pantallas de carga y login con fade
+                composable(
+                        "loading_data",
+                        enterTransition = { fadeIn(animationSpec = tween(animationDuration)) },
+                        exitTransition = { fadeOut(animationSpec = tween(animationDuration)) }
+                ) {
+                    com.suncar.suncartrabajador.ui.features.DatosIniciales.DatosInicialesComposable(
+                            modifier = Modifier.fillMaxSize(),
+                            onDataLoadComplete = {
+                                if (com.suncar.suncartrabajador.singleton.Auth.isUserAuthenticated()
+                                ) {
+                                    navController.navigate("main_app/nuevo") {
+                                        popUpTo("loading_data") { inclusive = true }
+                                    }
+                                } else {
+                                    navController.navigate("login") {
+                                        popUpTo("loading_data") { inclusive = true }
+                                    }
+                                }
+                            }
+                    )
+                }
+                composable(
+                        "login",
+                        enterTransition = {
+                            slideInHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetX = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetX = { -it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    com.suncar.suncartrabajador.ui.screens.Login.LoginComposable(
+                            modifier = Modifier.fillMaxSize(),
+                            onLoginSuccess = {
+                                navController.navigate("loading_data") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                    )
+                }
+
+                // Navegación principal con slide horizontal
+                composable(
+                        "main_app/reports",
+                        enterTransition = {
+                            slideInHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetX = { -it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetX = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    val context = LocalContext.current
+                    val listadoReportesViewModel:
+                            com.suncar.suncartrabajador.ui.screens.ListadoReportes.ListadoReportesViewModel =
+                            viewModel(
+                                    factory =
+                                            ViewModelProvider.AndroidViewModelFactory(
+                                                    context.applicationContext as Application
+                                            )
+                            )
+                    com.suncar.suncartrabajador.ui.screens.ListadoReportes
+                            .ListadoReportesComposable(
+                                    modifier = Modifier.fillMaxSize(),
+                                    listadoReportesViewModel = listadoReportesViewModel
+                            )
+                }
+                composable(
+                        "main_app/nuevo",
+                        enterTransition = {
+                            slideInHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetX = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetX = { -it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    com.suncar.suncartrabajador.ui.screens.Nuevo.NuevoComposable(
+                            modifier = Modifier.fillMaxSize(),
+                            navController = navController
+                    )
+                }
+                composable(
+                        "main_app/cuenta",
+                        enterTransition = {
+                            slideInHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetX = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetX = { -it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    com.suncar.suncartrabajador.ui.screens.Cuenta.CuentaConfigScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            onLogout = {
+                                navController.navigate("login") {
+                                    popUpTo("main_app/reports") { inclusive = true }
+                                }
+                            }
+                    )
+                }
+
+                // Reportes con slide vertical
+                composable(
+                        "main_app/nuevo/averia",
+                        enterTransition = {
+                            slideInVertically(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetY = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetY = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen(
+                            onBackPressed = { navController.popBackStack() },
+                            onSubmit = { navController.popBackStack("main_app/reports", false) }
+                    )
+                }
+                composable(
+                        "main_app/nuevo/mantenimiento",
+                        enterTransition = {
+                            slideInVertically(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetY = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetY = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    com.suncar.suncartrabajador.ui.reportes.Mantenimiento.MantenimientoScreen(
+                            onBackPressed = { navController.popBackStack() },
+                            onSubmit = { navController.popBackStack("main_app/reports", false) }
+                    )
+                }
+                composable(
+                        "main_app/nuevo/inversion",
+                        enterTransition = {
+                            slideInVertically(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetY = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetY = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) {
+                    com.suncar.suncartrabajador.ui.reportes.Inversion.InversionScreen(
+                            onBackPressed = { navController.popBackStack() },
+                            onSubmit = { navController.popBackStack("main_app/reports", false) }
+                    )
+                }
             }
         }
     }
@@ -163,7 +383,5 @@ fun SuncarTrabajadorApp() {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    SuncarTrabajadorTheme {
-        SuncarTrabajadorApp()
-    }
+    SuncarTrabajadorTheme { SuncarTrabajadorApp() }
 }
