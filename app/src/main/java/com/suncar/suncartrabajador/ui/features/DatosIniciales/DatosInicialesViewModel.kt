@@ -82,20 +82,30 @@ class DatosInicialesViewModel : ViewModel() {
                                 currentLoadingStep = "Finalizando carga..."
                         )
                     }
+                    
+                    // Solo completar si la carga fue exitosa
+                    _uiState.update {
+                        it.copy(
+                                isLoading = false,
+                                loadingProgress = 1.0f,
+                                currentLoadingStep = "Carga completada"
+                        )
+                    }
+                    onComplete()
                 } else {
                     val errorMessage =
                             trabajadoresResult.exceptionOrNull()?.message
                                     ?: "Error desconocido al cargar trabajadores"
                     _uiState.update {
                         it.copy(
+                                isLoading = false,
                                 errorMessage = errorMessage,
                                 currentLoadingStep = "Error al cargar trabajadores"
                         )
                     }
+                    // No llamar onComplete() en caso de error
+                    return@launch
                 }
-
-                // Llamar al callback de completado
-                onComplete()
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

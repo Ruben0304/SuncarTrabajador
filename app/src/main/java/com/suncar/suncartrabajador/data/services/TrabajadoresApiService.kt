@@ -8,7 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface TrabajadoresApiService {
-    @GET("api/trabajadores") suspend fun getTrabajadores(): TrabajadoresResponse
+    @GET("api/trabajadores/") suspend fun getTrabajadores(): TrabajadoresResponse
 
     @POST("api/trabajadores")
     suspend fun addTrabajador(@Body trabajador: TeamMember): TrabajadorResponse

@@ -7,6 +7,7 @@ data class TeamMember(
     @SerializedName("nombre")
     val name: String = "",
     @SerializedName("CI")
-    val id: String = ""
-
+    val id: String = "",
+    @SerializedName("tiene_contraseña")
+    val hasPassword: Boolean = false
 )

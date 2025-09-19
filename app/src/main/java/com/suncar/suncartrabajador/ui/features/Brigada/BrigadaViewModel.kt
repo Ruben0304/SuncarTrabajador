@@ -1,5 +1,6 @@
 package com.suncar.suncartrabajador.ui.features.Brigada
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.suncar.suncartrabajador.domain.models.TeamMember
@@ -19,6 +20,16 @@ class BrigadaViewModel : ViewModel() {
 
     init {
         loadBrigadaData()
+        
+        // Observar cambios en el singleton de trabajadores
+        viewModelScope.launch {
+            Trabajadores.trabajadoresDisponibles.collect { trabajadores ->
+                if (trabajadores != null && trabajadores.isNotEmpty()) {
+                    Log.d("BrigadaViewModel", "Trabajadores actualizados desde singleton: ${trabajadores.size}")
+                    refreshBrigadaWithNewWorkers(trabajadores)
+                }
+            }
+        }
     }
 
     /**
@@ -33,6 +44,13 @@ class BrigadaViewModel : ViewModel() {
                 val currentBrigada = Auth.getCurrentBrigada()
                 val integrantes = Auth.getIntegrantes()
                 val disponibles = Trabajadores.getTrabajadores()
+                
+                Log.d("BrigadaViewModel", "loadBrigadaData - Trabajadores disponibles: ${disponibles.size}")
+                Log.d("BrigadaViewModel", "loadBrigadaData - Integrantes actuales: ${integrantes.size}")
+                Log.d("BrigadaViewModel", "loadBrigadaData - Brigada actual: ${currentBrigada?.lider?.name ?: "null"}")
+                disponibles.forEach { trabajador ->
+                    Log.d("BrigadaViewModel", "Trabajador disponible: ${trabajador.name} (ID: ${trabajador.id})")
+                }
                 
                 if (currentBrigada != null) {
                     // Cargar líder y miembros de la brigada actual
@@ -85,7 +103,8 @@ class BrigadaViewModel : ViewModel() {
      */
     private fun updateAvailableTeamMembers() {
         val currentState = _uiState.value
-        val allTrabajadores = Trabajadores.getTrabajadores()
+        // Usar los datos ya cargados en availableLeaders que incluyen todos los trabajadores
+        val allTrabajadores = currentState.availableLeaders
         val availableMembers = getAvailableTeamMembers(allTrabajadores, currentState.teamMembers)
         
         _uiState.update { it.copy(availableTeamMembers = availableMembers) }
@@ -149,6 +168,39 @@ class BrigadaViewModel : ViewModel() {
      */
     fun refreshData() {
         loadBrigadaData()
+    }
+
+    /**
+     * Actualiza los datos de la brigada cuando llegan nuevos trabajadores
+     */
+    private fun refreshBrigadaWithNewWorkers(newTrabajadores: List<TeamMember>) {
+        val currentState = _uiState.value
+        val currentBrigada = Auth.getCurrentBrigada()
+        val integrantes = Auth.getIntegrantes()
+        
+        Log.d("BrigadaViewModel", "refreshBrigadaWithNewWorkers - Nuevos trabajadores: ${newTrabajadores.size}")
+        
+        if (currentBrigada != null) {
+            // Actualizar con brigada existente
+            _uiState.update {
+                it.copy(
+                    leader = currentBrigada.lider,
+                    teamMembers = integrantes,
+                    availableTeamMembers = getAvailableTeamMembers(newTrabajadores, integrantes),
+                    availableLeaders = newTrabajadores,
+                    isLoading = false
+                )
+            }
+        } else {
+            // Actualizar solo los trabajadores disponibles
+            _uiState.update {
+                it.copy(
+                    availableTeamMembers = getAvailableTeamMembers(newTrabajadores, currentState.teamMembers),
+                    availableLeaders = newTrabajadores,
+                    isLoading = false
+                )
+            }
+        }
     }
 }
 
