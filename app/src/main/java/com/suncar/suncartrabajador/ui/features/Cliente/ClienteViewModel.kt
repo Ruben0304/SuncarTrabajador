@@ -34,6 +34,7 @@ class ClienteViewModel(
     private var debounceJob: Job? = null
     private var gpsMonitoringJob: Job? = null
     private var locationCallback: LocationCallback? = null
+    private var buscarClientesJob: Job? = null
 
     fun onNumeroChanged(numero: String) {
         val currentState = _state.value.copy(numero = numero)
@@ -92,6 +93,83 @@ class ClienteViewModel(
                 }
             }
         }
+    }
+
+    fun onNombreBusquedaChanged(nombre: String) {
+        buscarClientesJob?.cancel()
+        _state.update {
+            it.copy(
+                nombreBusqueda = nombre,
+                mensajeBusqueda = null,
+                esErrorBusqueda = false,
+                clientesSugeridos = emptyList(),
+                mostrarSugerencias = false
+            )
+        }
+
+        if (nombre.trim().length < 2) {
+            _state.update { it.copy(isBuscandoClientes = false) }
+            return
+        }
+
+        buscarClientesJob = viewModelScope.launch {
+            delay(300)
+            val query = nombre.trim()
+            _state.update { it.copy(isBuscandoClientes = true) }
+            val result = service.obtenerClientes(query)
+            if (result.isSuccess) {
+                val clientes = result.getOrDefault(emptyList())
+                _state.update {
+                    it.copy(
+                        clientesSugeridos = clientes,
+                        mostrarSugerencias = clientes.isNotEmpty(),
+                        isBuscandoClientes = false,
+                        mensajeBusqueda = if (clientes.isEmpty()) "No se encontraron clientes" else null,
+                        esErrorBusqueda = false
+                    )
+                }
+            } else {
+                val errorMessage = result.exceptionOrNull()?.message ?: "Error al buscar clientes"
+                _state.update {
+                    it.copy(
+                        isBuscandoClientes = false,
+                        mensajeBusqueda = errorMessage,
+                        esErrorBusqueda = true,
+                        clientesSugeridos = emptyList(),
+                        mostrarSugerencias = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun onSugerenciasExpandedChange(expanded: Boolean) {
+        _state.update { current ->
+            if (!expanded) {
+                current.copy(mostrarSugerencias = false)
+            } else if (current.clientesSugeridos.isNotEmpty()) {
+                current.copy(mostrarSugerencias = true)
+            } else {
+                current
+            }
+        }
+    }
+
+    fun onClienteSugerenciaSeleccionado(cliente: Cliente) {
+        buscarClientesJob?.cancel()
+        debounceJob?.cancel()
+        _state.update {
+            it.copy(
+                esClienteNuevo = false,
+                nombreBusqueda = cliente.nombre,
+                numero = cliente.numero,
+                clientesSugeridos = emptyList(),
+                mostrarSugerencias = false,
+                mensajeBusqueda = null,
+                esErrorBusqueda = false
+            )
+        }
+        onNumeroChanged(cliente.numero)
     }
 
     fun setEsClienteNuevo(nuevo: Boolean) {

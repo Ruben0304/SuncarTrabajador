@@ -52,4 +52,26 @@ class ClienteService {
             Result.failure(Exception("Error inesperado: ${e.message}"))
         }
     }
+
+    /** Obtiene la lista de clientes del servidor con búsqueda opcional por nombre */
+    suspend fun obtenerClientes(nombre: String? = null): Result<List<Cliente>> {
+        return try {
+            val query = nombre?.takeIf { it.isNotBlank() }
+            val clientes = clienteApiService.listarClientes(query)
+            val mapped = clientes.mapNotNull { response ->
+                val numero = response.numero?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                val nombreCliente = response.nombre?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                Cliente(
+                    numero = numero,
+                    nombre = nombreCliente,
+                    direccion = response.direccion
+                )
+            }
+            Result.success(mapped)
+        } catch (e: IOException) {
+            Result.failure(Exception("Error de conexión: Verifique su conexión a internet"))
+        } catch (e: Exception) {
+            Result.failure(Exception("Error inesperado: ${e.message}"))
+        }
+    }
 }

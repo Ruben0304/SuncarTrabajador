@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +23,7 @@ import com.suncar.suncartrabajador.ui.components.CustomCard
 import com.suncar.suncartrabajador.ui.components.EmptyStateCard
 import com.suncar.suncartrabajador.ui.shared.LocationLottieAnimation
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClienteComposable(
     modifier: Modifier = Modifier,
@@ -74,6 +76,80 @@ fun ClienteComposable(
         icon = Icons.Filled.Person,
         isLoading = state.isLoading
     ) {
+        ExposedDropdownMenuBox(
+            expanded = state.mostrarSugerencias,
+            onExpandedChange = { expanded ->
+                clienteViewModel.onSugerenciasExpandedChange(expanded)
+            }
+        ) {
+            OutlinedTextField(
+                value = state.nombreBusqueda,
+                onValueChange = { clienteViewModel.onNombreBusquedaChanged(it) },
+                label = { Text("Buscar cliente por nombre") },
+                placeholder = { Text("Ej: Ernesto") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = null
+                    )
+                },
+                trailingIcon = {
+                    if (state.isBuscandoClientes) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = state.mostrarSugerencias)
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = state.mostrarSugerencias,
+                onDismissRequest = { clienteViewModel.onSugerenciasExpandedChange(false) }
+            ) {
+                state.clientesSugeridos.forEach { cliente ->
+                    DropdownMenuItem(
+                        text = {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = cliente.nombre,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    text = "Número: ${cliente.numero}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                cliente.direccion?.takeIf { it.isNotBlank() }?.let { direccion ->
+                                    Text(
+                                        text = direccion,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        },
+                        onClick = { clienteViewModel.onClienteSugerenciaSeleccionado(cliente) }
+                    )
+                }
+            }
+        }
+        if (state.mensajeBusqueda != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = state.mensajeBusqueda ?: "",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (state.esErrorBusqueda) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         // Radio para cliente nuevo/existente
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(
