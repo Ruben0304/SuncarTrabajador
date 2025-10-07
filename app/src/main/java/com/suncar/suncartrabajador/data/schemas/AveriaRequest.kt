@@ -17,4 +17,5 @@ data class AveriaRequest(
         @SerializedName("adjuntos") val adjuntos: AdjuntosRequest,
         @SerializedName("firma_cliente") val firmaCliente: FirmaClienteRequest? = null,
         @SerializedName("fecha_creacion") val fechaCreacion: String = LocalDate.now().toString(),
+        @SerializedName("local_id") val localId: Long = System.currentTimeMillis(),
 )

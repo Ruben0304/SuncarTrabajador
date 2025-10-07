@@ -258,12 +258,14 @@ class InversionViewModel(
 
                 // Preparar imágenes comprimidas de forma asíncrona
                 val fotosInicioParts = mutableListOf<MultipartBody.Part>()
-                for (uri in state.adjuntosState.startAttachments) {
+                for ((index, uri) in state.adjuntosState.startAttachments.withIndex()) {
+                        val fileName = ImageUtils.generateUniqueImageName("inicio", index + 1)
                         val part =
-                                ImageUtils.uriToCompressedMultipartAsync(
+                                ImageUtils.uriToCompressedMultipartWithNameAsync(
                                         context,
                                         uri,
-                                        "fotos_inicio"
+                                        "fotos_inicio",
+                                        fileName
                                 )
                         if (part != null) {
                                 fotosInicioParts.add(part)
@@ -271,9 +273,10 @@ class InversionViewModel(
                 }
 
                 val fotosFinParts = mutableListOf<MultipartBody.Part>()
-                for (uri in state.adjuntosState.endAttachments) {
+                for ((index, uri) in state.adjuntosState.endAttachments.withIndex()) {
+                        val fileName = ImageUtils.generateUniqueImageName("fin", index + 1)
                         val part =
-                                ImageUtils.uriToCompressedMultipartAsync(context, uri, "fotos_fin")
+                                ImageUtils.uriToCompressedMultipartWithNameAsync(context, uri, "fotos_fin", fileName)
                         if (part != null) {
                                 fotosFinParts.add(part)
                         }

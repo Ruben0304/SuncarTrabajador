@@ -174,16 +174,18 @@ class InversionService {
 
             // Usar versiones asíncronas para evitar bloquear la UI
             val fotosInicioParts = mutableListOf<MultipartBody.Part>()
-            for (base64 in request.adjuntos.fotosInicio) {
-                val part = ImageUtils.base64ToMultipartAsync(base64, "fotos_inicio")
+            for ((index, base64) in request.adjuntos.fotosInicio.withIndex()) {
+                val fileName = ImageUtils.generateUniqueImageName("inicio", index + 1)
+                val part = ImageUtils.base64ToMultipartWithNameAsync(base64, "fotos_inicio", fileName)
                 if (part != null) {
                     fotosInicioParts.add(part)
                 }
             }
 
             val fotosFinParts = mutableListOf<MultipartBody.Part>()
-            for (base64 in request.adjuntos.fotosFin) {
-                val part = ImageUtils.base64ToMultipartAsync(base64, "fotos_fin")
+            for ((index, base64) in request.adjuntos.fotosFin.withIndex()) {
+                val fileName = ImageUtils.generateUniqueImageName("fin", index + 1)
+                val part = ImageUtils.base64ToMultipartWithNameAsync(base64, "fotos_fin", fileName)
                 if (part != null) {
                     fotosFinParts.add(part)
                 }

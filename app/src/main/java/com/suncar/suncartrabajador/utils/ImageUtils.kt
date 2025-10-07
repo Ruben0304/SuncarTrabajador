@@ -22,6 +22,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object ImageUtils {
+
+    /**
+     * Genera un nombre único para foto siguiendo el patrón: reporte_{timestamp}_{inicio|fin}_{numero}.jpg
+     * @param tipo "inicio" o "fin" dependiendo del tipo de foto
+     * @param numero Número secuencial de la foto (1, 2, 3, etc.)
+     * @return Nombre único para la foto
+     */
+    fun generateUniqueImageName(tipo: String, numero: Int): String {
+        val timestamp = System.currentTimeMillis()
+        return "reporte_${timestamp}_${tipo}_${numero}.jpg"
+    }
     
     /**
      * Convierte un Uri de imagen a base64, comprimiendo la imagen para que pese cerca de 100KB
@@ -141,6 +152,25 @@ object ImageUtils {
         partName: String,
         maxSizeKB: Int = 130
     ): MultipartBody.Part? {
+        return uriToCompressedMultipartWithName(context, uri, partName, "image.jpg", maxSizeKB)
+    }
+
+    /**
+     * Convierte un Uri de imagen a MultipartBody.Part comprimido para envío multipart con nombre personalizado
+     * @param context Contexto de la aplicación
+     * @param uri Uri de la imagen
+     * @param partName Nombre del campo en el form-data
+     * @param fileName Nombre del archivo personalizado
+     * @param maxSizeKB Tamaño máximo deseado en KB (por defecto 130)
+     * @return MultipartBody.Part listo para enviar o null si hay error
+     */
+    fun uriToCompressedMultipartWithName(
+        context: Context,
+        uri: Uri,
+        partName: String,
+        fileName: String,
+        maxSizeKB: Int = 130
+    ): MultipartBody.Part? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
             val bitmap = BitmapFactory.decodeStream(inputStream)
@@ -158,7 +188,7 @@ object ImageUtils {
             } while (bytes.size > maxSizeKB * 1024 && quality > 10)
 
             val requestFile = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData(partName, "image.jpg", requestFile)
+            MultipartBody.Part.createFormData(partName, fileName, requestFile)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -185,6 +215,27 @@ object ImageUtils {
     }
 
     /**
+     * Convierte un Uri de imagen a MultipartBody.Part comprimido para envío multipart con nombre personalizado de forma asíncrona
+     * @param context Contexto de la aplicación
+     * @param uri Uri de la imagen
+     * @param partName Nombre del campo en el form-data
+     * @param fileName Nombre del archivo personalizado
+     * @param maxSizeKB Tamaño máximo deseado en KB (por defecto 130)
+     * @return MultipartBody.Part listo para enviar o null si hay error
+     */
+    suspend fun uriToCompressedMultipartWithNameAsync(
+        context: Context,
+        uri: Uri,
+        partName: String,
+        fileName: String,
+        maxSizeKB: Int = 130
+    ): MultipartBody.Part? {
+        return withContext(Dispatchers.IO) {
+            uriToCompressedMultipartWithName(context, uri, partName, fileName, maxSizeKB)
+        }
+    }
+
+    /**
      * Convierte un string base64 a MultipartBody.Part comprimido para envío multipart
      * @param base64 String base64 de la imagen
      * @param partName Nombre del campo en el form-data
@@ -194,6 +245,23 @@ object ImageUtils {
     fun base64ToMultipart(
         base64: String,
         partName: String,
+        maxSizeKB: Int = 130
+    ): MultipartBody.Part? {
+        return base64ToMultipartWithName(base64, partName, "image.jpg", maxSizeKB)
+    }
+
+    /**
+     * Convierte un string base64 a MultipartBody.Part comprimido para envío multipart con nombre personalizado
+     * @param base64 String base64 de la imagen
+     * @param partName Nombre del campo en el form-data
+     * @param fileName Nombre del archivo personalizado
+     * @param maxSizeKB Tamaño máximo deseado en KB (por defecto 130)
+     * @return MultipartBody.Part listo para enviar o null si hay error
+     */
+    fun base64ToMultipartWithName(
+        base64: String,
+        partName: String,
+        fileName: String,
         maxSizeKB: Int = 130
     ): MultipartBody.Part? {
         return try {
@@ -209,7 +277,7 @@ object ImageUtils {
                 quality -= 5
             } while (bytes.size > maxSizeKB * 1024 && quality > 10)
             val requestFile = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData(partName, "image.jpg", requestFile)
+            MultipartBody.Part.createFormData(partName, fileName, requestFile)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -230,6 +298,25 @@ object ImageUtils {
     ): MultipartBody.Part? {
         return withContext(Dispatchers.IO) {
             base64ToMultipart(base64, partName, maxSizeKB)
+        }
+    }
+
+    /**
+     * Convierte un string base64 a MultipartBody.Part comprimido para envío multipart con nombre personalizado de forma asíncrona
+     * @param base64 String base64 de la imagen
+     * @param partName Nombre del campo en el form-data
+     * @param fileName Nombre del archivo personalizado
+     * @param maxSizeKB Tamaño máximo deseado en KB (por defecto 130)
+     * @return MultipartBody.Part listo para enviar o null si hay error
+     */
+    suspend fun base64ToMultipartWithNameAsync(
+        base64: String,
+        partName: String,
+        fileName: String,
+        maxSizeKB: Int = 130
+    ): MultipartBody.Part? {
+        return withContext(Dispatchers.IO) {
+            base64ToMultipartWithName(base64, partName, fileName, maxSizeKB)
         }
     }
 }

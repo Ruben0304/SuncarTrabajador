@@ -17,6 +17,7 @@ data class InversionRequest(
         @SerializedName("adjuntos") val adjuntos: AdjuntosRequest,
         @SerializedName("firma_cliente") val firmaCliente: FirmaClienteRequest? = null,
         @SerializedName("fecha_creacion") val fechaCreacion: String = LocalDate.now().toString(),
+        @SerializedName("local_id") val localId: Long = System.currentTimeMillis(),
 )
 
 /** Datos de la brigada para el request */

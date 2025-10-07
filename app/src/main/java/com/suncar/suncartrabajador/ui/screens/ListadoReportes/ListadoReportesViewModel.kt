@@ -64,8 +64,7 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
         return withContext(Dispatchers.IO) {
             val gson = Gson()
             val reports = mutableListOf<ReportList>()
-            var index = 0
-            
+
             // Leer inversiones
             val inversionesFile = File(context.filesDir, "inversiones_pendientes.json")
             if (inversionesFile.exists()) {
@@ -79,14 +78,14 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                             fecha = it.fechaHora.fecha,
                             cliente = it.cliente.direccion ?: it.cliente.numero,
                             tipo = it.tipoReporte,
-                            id = index++
+                            id = it.localId.toInt()
                         )
                     })
                 } catch (e: Exception) {
                     // Si hay error al leer inversiones, continuar
                 }
             }
-            
+
             // Leer averías
             val averiasFile = File(context.filesDir, "averias_pendientes.json")
             if (averiasFile.exists()) {
@@ -100,14 +99,14 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                             fecha = it.fechaHora.fecha,
                             cliente = it.cliente.direccion ?: it.cliente.numero,
                             tipo = it.tipoReporte,
-                            id = index++
+                            id = it.localId.toInt()
                         )
                     })
                 } catch (e: Exception) {
                     // Si hay error al leer averías, continuar
                 }
             }
-            
+
             // Leer mantenimientos
             val mantenimientosFile = File(context.filesDir, "mantenimientos_pendientes.json")
             if (mantenimientosFile.exists()) {
@@ -121,14 +120,14 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                             fecha = it.fechaHora.fecha,
                             cliente = it.cliente.direccion ?: it.cliente.numero,
                             tipo = it.tipoReporte,
-                            id = index++
+                            id = it.localId.toInt()
                         )
                     })
                 } catch (e: Exception) {
                     // Si hay error al leer mantenimientos, continuar
                 }
             }
-            
+
             reports
         }
     }
@@ -348,7 +347,7 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                 emptyList()
             }
             inversiones.find {
-                it.fechaHora.fecha == report.fecha && (it.cliente.numero == report.cliente || it.cliente.direccion == report.cliente)
+                it.localId.toInt() == report.id
             }
         }
     }
@@ -365,7 +364,7 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                 emptyList()
             }
             averias.find {
-                it.fechaHora.fecha == report.fecha && (it.cliente.numero == report.cliente || it.cliente.direccion == report.cliente)
+                it.localId.toInt() == report.id
             }
         }
     }
@@ -382,7 +381,7 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                 emptyList()
             }
             mantenimientos.find {
-                it.fechaHora.fecha == report.fecha && (it.cliente.numero == report.cliente || it.cliente.direccion == report.cliente)
+                it.localId.toInt() == report.id
             }
         }
     }
@@ -413,13 +412,13 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
             val removed = requests.removeIf {
                 when (tipo) {
                     "inversion" -> {
-                        it is InversionRequest && it.fechaHora.fecha == (request as InversionRequest).fechaHora.fecha && it.cliente.direccion == (request as InversionRequest).cliente.direccion
+                        it is InversionRequest && it.localId == (request as InversionRequest).localId
                     }
                     "averia" -> {
-                        it is AveriaRequest && it.fechaHora.fecha == (request as AveriaRequest).fechaHora.fecha && it.cliente.direccion == (request as AveriaRequest).cliente.direccion
+                        it is AveriaRequest && it.localId == (request as AveriaRequest).localId
                     }
                     "mantenimiento" -> {
-                        it is MantenimientoRequest && it.fechaHora.fecha == (request as MantenimientoRequest).fechaHora.fecha && it.cliente.direccion == (request as MantenimientoRequest).cliente.direccion
+                        it is MantenimientoRequest && it.localId == (request as MantenimientoRequest).localId
                     }
                     else -> false
                 }

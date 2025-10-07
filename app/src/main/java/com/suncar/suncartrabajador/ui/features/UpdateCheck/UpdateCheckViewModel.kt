@@ -59,12 +59,22 @@ class UpdateCheckViewModel(private val updateService: UpdateService) : ViewModel
 
             try {
                 val fileName = "SuncarTrabajador-${updateInfo.latestVersion}.apk"
-                val downloadedFile = updateService.downloadUpdate(updateInfo.downloadUrl, fileName)
+                val downloadedFile = updateService.downloadUpdate(
+                    updateInfo.downloadUrl,
+                    fileName
+                ) { progress ->
+                    _state.update { it.copy(downloadProgress = progress) }
+                }
 
                 _state.update { it.copy(isDownloading = false, downloadProgress = 1f) }
 
                 if (downloadedFile != null) {
-                    updateService.installUpdate(downloadedFile)
+                    val installationStarted = updateService.installUpdate(downloadedFile)
+                    if (!installationStarted) {
+                        _state.update {
+                            it.copy(error = "Error al iniciar la instalación de la actualización")
+                        }
+                    }
                 }
 
                 onDownloadComplete(downloadedFile)

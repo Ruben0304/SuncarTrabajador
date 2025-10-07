@@ -89,7 +89,17 @@ fun UpdateDialog(
                             Column {
                                 Text(
                                         text = "Descargando actualización...",
-                                        style = MaterialTheme.typography.bodyMedium
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                        text = "⚠️ No cierre la aplicación durante la descarga",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.Medium
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -98,7 +108,29 @@ fun UpdateDialog(
                                         progress = state.downloadProgress,
                                         modifier = Modifier.fillMaxWidth()
                                 )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                        text = "${(state.downloadProgress * 100).toInt()}%",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                )
                             }
+                        }
+
+                        state.error?.let { errorMessage ->
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = errorMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 },

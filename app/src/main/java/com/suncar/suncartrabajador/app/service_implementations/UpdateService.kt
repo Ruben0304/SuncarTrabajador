@@ -37,11 +37,18 @@ class UpdateService(private val updateApiService: UpdateApiService, private val 
         }
     }
 
-    suspend fun downloadUpdate(downloadUrl: String, fileName: String): File? {
+    suspend fun downloadUpdate(
+        downloadUrl: String,
+        fileName: String,
+        onProgressUpdate: (Float) -> Unit
+    ): File? {
         return withContext(Dispatchers.IO) {
             try {
                 val client =
                         OkHttpClient.Builder()
+                                .connectTimeout(30, TimeUnit.SECONDS)
+                                .readTimeout(30, TimeUnit.SECONDS)
+                                .writeTimeout(30, TimeUnit.SECONDS)
                                 .build()
                 val request = Request.Builder().url(downloadUrl).build()
 
@@ -57,10 +64,27 @@ class UpdateService(private val updateApiService: UpdateApiService, private val 
                 val file = File(downloadsDir, fileName)
 
                 response.body?.let { body ->
+                    val totalBytes = body.contentLength()
                     val inputStream = body.byteStream()
                     val outputStream = FileOutputStream(file)
 
-                    inputStream.use { input -> outputStream.use { output -> input.copyTo(output) } }
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    var totalBytesRead = 0L
+
+                    inputStream.use { input ->
+                        outputStream.use { output ->
+                            while (input.read(buffer).also { bytesRead = it } != -1) {
+                                output.write(buffer, 0, bytesRead)
+                                totalBytesRead += bytesRead
+
+                                if (totalBytes > 0) {
+                                    val progress = (totalBytesRead.toFloat() / totalBytes.toFloat())
+                                    onProgressUpdate(progress)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 file
@@ -70,23 +94,28 @@ class UpdateService(private val updateApiService: UpdateApiService, private val 
         }
     }
 
-    fun installUpdate(apkFile: File) {
-        try {
+    fun installUpdate(apkFile: File): Boolean {
+        return try {
+            if (!apkFile.exists() || !apkFile.canRead()) {
+                return false
+            }
+
             val intent = Intent(Intent.ACTION_VIEW)
-            val uri =
-                    FileProvider.getUriForFile(
-                            context,
-                            "${context.packageName}.fileprovider",
-                            apkFile
-                    )
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                apkFile
+            )
 
             intent.setDataAndType(uri, "application/vnd.android.package-archive")
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
             context.startActivity(intent)
+            true
         } catch (e: Exception) {
-            // Manejar error de instalación
+            false
         }
     }
 

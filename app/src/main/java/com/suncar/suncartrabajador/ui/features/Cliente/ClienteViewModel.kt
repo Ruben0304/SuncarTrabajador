@@ -206,7 +206,7 @@ class ClienteViewModel(
                 override fun onLocationResult(result: LocationResult) {
                     val location = result.lastLocation ?: return
                     setLocationAccuracy(location.accuracy)
-                    if (location.accuracy <= 10f) {
+                    if (location.accuracy <= 30f) {
                         setStatusMessage("Ubicación obtenida: ${location.latitude},${location.longitude}")
                         updateLocationData(
                             state.locationData.copy(
