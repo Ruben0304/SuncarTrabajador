@@ -1,12 +1,10 @@
 package com.suncar.suncartrabajador.ui.features.Cliente
 
 import com.suncar.suncartrabajador.domain.models.Cliente
-import com.suncar.suncartrabajador.domain.models.LocationData
+import com.google.android.gms.maps.model.LatLng
 
 data class ClienteState(
     val numero: String = "",
-    val nombreClienteNuevo: String = "",
-    val numeroClienteNuevo: String = "",
     val isValid: Boolean = false,
     val isLoading: Boolean = false,
     val cliente: Cliente? = null,
@@ -17,11 +15,8 @@ data class ClienteState(
     val mensajeBusqueda: String? = null,
     val esErrorBusqueda: Boolean = false,
     val error: String? = null,
-    val esClienteNuevo: Boolean = false,
-    val locationData: LocationData = LocationData(),
-    val hasGpsPermission: Boolean = false,
-    val gpsEnabled: Boolean = false,
-    val locationAccuracy: Float? = null,
-    val statusMessage: String = "",
-    val isGpsMonitoring: Boolean = false
+    val mostrarMapaParaUbicacion: Boolean = false,
+    val ubicacionSeleccionada: LatLng? = null,
+    val isActualizandoUbicacion: Boolean = false,
+    val mensajeActualizacion: String? = null
 ) 

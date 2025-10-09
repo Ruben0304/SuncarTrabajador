@@ -1,8 +1,8 @@
 package com.suncar.suncartrabajador.app.service_implementations
 
 import com.suncar.suncartrabajador.data.http.RetrofitClient
-import com.suncar.suncartrabajador.data.schemas.ClienteCreateRequest
-import com.suncar.suncartrabajador.data.schemas.ClienteCreateResponse
+import com.suncar.suncartrabajador.data.schemas.ClienteUpdateRequest
+import com.suncar.suncartrabajador.data.schemas.ClienteUpdateResponse
 import com.suncar.suncartrabajador.data.schemas.ClienteVerificacionResponse
 import com.suncar.suncartrabajador.data.services.ClienteApiService
 import com.suncar.suncartrabajador.domain.models.Cliente
@@ -11,11 +11,11 @@ import java.io.IOException
 class ClienteService {
     private val clienteApiService: ClienteApiService = RetrofitClient.createService()
 
-    /** Crea un nuevo cliente en el servidor */
-    suspend fun crearCliente(clienteRequest: ClienteCreateRequest): Result<ClienteCreateResponse> {
+    /** Actualiza un cliente existente en el servidor */
+    suspend fun actualizarCliente(numero: String, clienteRequest: ClienteUpdateRequest): Result<ClienteUpdateResponse> {
         return try {
-            val cliente = clienteApiService.crearCliente(clienteRequest)
-            Result.success(cliente)
+            val response = clienteApiService.actualizarCliente(numero, clienteRequest)
+            Result.success(response)
         } catch (e: IOException) {
             Result.failure(Exception("Error de conexión: Verifique su conexión a internet"))
         } catch (e: Exception) {

@@ -23,6 +23,9 @@
         android:roundIcon="@mipmap/icon_real_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SuncarTrabajador">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDGJ7FDRXl9gi8BxXW-IsBtdOAscibby_U" />
 
 
         <provider

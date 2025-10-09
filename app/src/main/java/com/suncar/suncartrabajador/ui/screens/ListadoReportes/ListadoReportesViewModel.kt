@@ -167,30 +167,8 @@ class ListadoReportesViewModel(application: Application) : AndroidViewModel(appl
                     return@launch
                 }
 
-                // Crear cliente si es necesario (solo para inversión y mantenimiento)
-                if (report.tipo in listOf("inversion", "mantenimiento")) {
-                    val cliente = when (report.tipo) {
-                        "inversion" -> (request as InversionRequest).cliente
-                        "mantenimiento" -> (request as MantenimientoRequest).cliente
-                        else -> null
-                    }
-                    
-                    if (cliente != null && !cliente.direccion.isNullOrEmpty()) {
-                        val clienteResult = clienteService.crearCliente(cliente)
-                        if (clienteResult.isFailure) {
-                            val errorMessage = clienteResult.exceptionOrNull()?.message
-                                ?: "Error al crear cliente nuevo"
-                            _uiState.update {
-                                it.copy(
-                                    sendingReports = it.sendingReports - "${report.id}",
-                                    errorMessage = errorMessage,
-                                    showErrorDialog = true,
-                                )
-                            }
-                            return@launch
-                        }
-                    }
-                }
+                // El cliente ya existe en la base de datos (no necesitamos crearlo)
+                // La ubicación ya se actualizó vía PATCH si fue necesario
 
                 // Enviar según el tipo de reporte
                 when (report.tipo) {

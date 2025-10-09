@@ -5,7 +5,7 @@ converterGson = "3.0.0"
 kmongoAsync = "5.2.1"
 kmongoCoroutine = "5.2.1"
 kmongoSerialization = "5.2.1"
-kotlin = "2.0.21"
+kotlin = "2.2.20"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -16,7 +16,8 @@ activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 lifecycleViewmodelCompose = "2.9.1"
 lottieCompose = "6.6.7"
-mapsCompose = "6.6.0"
+mapsCompose = "6.12.1"
+mapsComposeVersion = "6.12.1"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.1"
 playServicesLocation = "21.3.0"
@@ -52,6 +53,7 @@ kmongo-serialization = { module = "org.litote.kmongo:kmongo-serialization", vers
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+maps-compose-v6121 = { module = "com.google.maps.android:maps-compose", version.ref = "mapsComposeVersion" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 androidx-material3-jvmstubs = { group = "androidx.compose.material3", name = "material3-jvmstubs", version.ref = "material3Jvmstubs" }

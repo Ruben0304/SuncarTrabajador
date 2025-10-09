@@ -112,47 +112,7 @@ class AveriaViewModel(
                                         )
                                 }
                                 try {
-                                        val state = _uiState.value
-                                        // Si el cliente es nuevo, primero crearlo
-                                        if (state.clienteState.esClienteNuevo) {
-                                                val clienteRequest =
-                                                        ClienteCreateRequest(
-                                                                numero =
-                                                                        state.clienteState
-                                                                                .numeroClienteNuevo,
-                                                                nombre =
-                                                                        state.clienteState
-                                                                                .nombreClienteNuevo,
-                                                                direccion =
-                                                                        state.clienteState
-                                                                                .locationData
-                                                                                .address,
-                                                                latitud =
-                                                                        state.clienteState
-                                                                                .locationData
-                                                                                .latitud,
-                                                                longitud =
-                                                                        state.clienteState
-                                                                                .locationData
-                                                                                .longitud
-                                                        )
-                                                val clienteResult =
-                                                        clienteService.crearCliente(clienteRequest)
-                                                if (clienteResult.isFailure) {
-                                                        val errorMessage =
-                                                                clienteResult.exceptionOrNull()
-                                                                        ?.message
-                                                                        ?: "Error al crear cliente nuevo"
-                                                        _uiState.update {
-                                                                it.copy(
-                                                                        errorMessage = errorMessage,
-                                                                        showErrorDialog = true,
-                                                                        isSubmitting = false
-                                                                )
-                                                        }
-                                                        return@launch
-                                                }
-                                        }
+                                        // Enviar el reporte directamente con el número de cliente
                                         val result = enviarAveriaMultipart(context)
                                         if (result.isSuccess) {
                                                 val response = result.getOrNull()
@@ -227,10 +187,7 @@ class AveriaViewModel(
 
                 val clienteRequest =
                         ClienteRequest(
-                                numero =
-                                        if (state.clienteState.esClienteNuevo)
-                                                state.clienteState.numeroClienteNuevo
-                                        else state.clienteState.numero
+                                numero = state.clienteState.numero
                         )
 
                 val fechaHoraRequest =
@@ -406,24 +363,15 @@ class AveriaViewModel(
                                 )
                         }
 
-                // Usar datos de cliente y su ubicación
+                // Usar solo el número de cliente (la ubicación ya se actualizó vía PATCH si fue necesario)
                 val clienteRequest =
-                        if (state.clienteState.esClienteNuevo)
-                                ClienteCreateRequest(
-                                        numero = state.clienteState.numeroClienteNuevo,
-                                        nombre = state.clienteState.nombreClienteNuevo,
-                                        direccion = state.clienteState.locationData.address,
-                                        latitud = state.clienteState.locationData.latitud,
-                                        longitud = state.clienteState.locationData.longitud
-                                )
-                        else
-                                ClienteCreateRequest(
-                                        numero = state.clienteState.numero,
-                                        nombre = null,
-                                        direccion = null,
-                                        latitud = null,
-                                        longitud = null
-                                )
+                        ClienteCreateRequest(
+                                numero = state.clienteState.numero,
+                                nombre = null,
+                                direccion = null,
+                                latitud = null,
+                                longitud = null
+                        )
 
                 val fechaHoraRequest =
                         FechaHoraRequest(
