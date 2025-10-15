@@ -2,6 +2,8 @@ package com.suncar.suncartrabajador
 
 import android.app.Activity
 import android.app.Application
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -22,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,10 +34,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.suncar.suncartrabajador.singleton.Auth
 import com.suncar.suncartrabajador.ui.features.DatosIniciales.DatosInicialesComposable
 import com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen
@@ -46,11 +51,22 @@ import com.suncar.suncartrabajador.ui.screens.Login.LoginComposable
 import com.suncar.suncartrabajador.ui.screens.Nuevo.NuevoComposable
 import com.suncar.suncartrabajador.ui.theme.SuncarTrabajadorTheme
 
+data class DeepLinkData(
+    val tipoReporte: String,
+    val numeroCliente: String
+)
+
 class MainActivity : ComponentActivity() {
+    private var deepLinkData = mutableStateOf<DeepLinkData?>(null)
+
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Procesar deeplink
+        handleDeepLink(intent)
+
         setContent {
             SuncarTrabajadorTheme {
                 val context = LocalContext.current
@@ -64,7 +80,25 @@ class MainActivity : ComponentActivity() {
                                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
                 }
-                SuncarTrabajadorApp()
+                SuncarTrabajadorApp(deepLinkData = deepLinkData.value)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    private fun handleDeepLink(intent: Intent?) {
+        val data: Uri? = intent?.data
+        if (data != null && data.scheme == "suncartrabajador" && data.host == "crear") {
+            // Formato esperado: suncartrabajador://crear/{tipo}/{numeroCliente}
+            val pathSegments = data.pathSegments
+            if (pathSegments.size >= 2) {
+                val tipo = pathSegments[0] // averia, mantenimiento, inversion
+                val numeroCliente = pathSegments[1]
+                deepLinkData.value = DeepLinkData(tipo, numeroCliente)
             }
         }
     }
@@ -74,8 +108,25 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 @Preview
-fun SuncarTrabajadorApp() {
+fun SuncarTrabajadorApp(deepLinkData: DeepLinkData? = null) {
     val navController = rememberNavController()
+
+    // Manejar deeplink cuando los datos están disponibles
+    LaunchedEffect(deepLinkData) {
+        if (deepLinkData != null && Auth.isUserAuthenticated()) {
+            val route = when (deepLinkData.tipoReporte.lowercase()) {
+                "averia" -> "main_app/nuevo/averia/${deepLinkData.numeroCliente}"
+                "mantenimiento" -> "main_app/nuevo/mantenimiento/${deepLinkData.numeroCliente}"
+                "inversion" -> "main_app/nuevo/inversion/${deepLinkData.numeroCliente}"
+                else -> null
+            }
+            route?.let {
+                navController.navigate(it) {
+                    popUpTo("loading_data") { inclusive = true }
+                }
+            }
+        }
+    }
     val destinations =
             listOf(
                     Triple(
@@ -105,6 +156,13 @@ fun SuncarTrabajadorApp() {
                             "main_app/nuevo/inversion"
                     )
 
+    // Función para verificar si la ruta actual es una pantalla de reporte
+    fun isReportScreen(route: String?): Boolean {
+        return route?.contains("main_app/nuevo/averia") == true ||
+               route?.contains("main_app/nuevo/mantenimiento") == true ||
+               route?.contains("main_app/nuevo/inversion") == true
+    }
+
     // Configuración de animaciones
     val animationDuration = 300 // Duración en milisegundos
 
@@ -133,7 +191,7 @@ fun SuncarTrabajadorApp() {
 
     Scaffold(
             topBar = {
-                if (currentRoute in topBarRoutes) {
+                if (currentRoute in topBarRoutes || isReportScreen(currentRoute)) {
                     com.suncar.suncartrabajador.ui.layout.TopAppBarCustom(
                             onBackPressed = { navController.popBackStack() },
                             showBackButton = navController.previousBackStackEntry != null
@@ -315,6 +373,33 @@ fun SuncarTrabajadorApp() {
 
                 // Reportes con slide vertical
                 composable(
+                        "main_app/nuevo/averia/{clienteNumero}",
+                        arguments = listOf(navArgument("clienteNumero") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }),
+                        enterTransition = {
+                            slideInVertically(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetY = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetY = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) { backStackEntry ->
+                    val clienteNumero = backStackEntry.arguments?.getString("clienteNumero")
+                    com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen(
+                            onBackPressed = { navController.popBackStack() },
+                            onSubmit = { navController.popBackStack("main_app/reports", false) },
+                            clienteNumero = clienteNumero
+                    )
+                }
+                composable(
                         "main_app/nuevo/averia",
                         enterTransition = {
                             slideInVertically(
@@ -335,6 +420,33 @@ fun SuncarTrabajadorApp() {
                     )
                 }
                 composable(
+                        "main_app/nuevo/mantenimiento/{clienteNumero}",
+                        arguments = listOf(navArgument("clienteNumero") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }),
+                        enterTransition = {
+                            slideInVertically(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetY = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetY = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) { backStackEntry ->
+                    val clienteNumero = backStackEntry.arguments?.getString("clienteNumero")
+                    com.suncar.suncartrabajador.ui.reportes.Mantenimiento.MantenimientoScreen(
+                            onBackPressed = { navController.popBackStack() },
+                            onSubmit = { navController.popBackStack("main_app/reports", false) },
+                            clienteNumero = clienteNumero
+                    )
+                }
+                composable(
                         "main_app/nuevo/mantenimiento",
                         enterTransition = {
                             slideInVertically(
@@ -352,6 +464,33 @@ fun SuncarTrabajadorApp() {
                     com.suncar.suncartrabajador.ui.reportes.Mantenimiento.MantenimientoScreen(
                             onBackPressed = { navController.popBackStack() },
                             onSubmit = { navController.popBackStack("main_app/reports", false) }
+                    )
+                }
+                composable(
+                        "main_app/nuevo/inversion/{clienteNumero}",
+                        arguments = listOf(navArgument("clienteNumero") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }),
+                        enterTransition = {
+                            slideInVertically(
+                                    animationSpec = tween(animationDuration),
+                                    initialOffsetY = { it }
+                            ) + fadeIn(animationSpec = tween(animationDuration))
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                    animationSpec = tween(animationDuration),
+                                    targetOffsetY = { it }
+                            ) + fadeOut(animationSpec = tween(animationDuration))
+                        }
+                ) { backStackEntry ->
+                    val clienteNumero = backStackEntry.arguments?.getString("clienteNumero")
+                    com.suncar.suncartrabajador.ui.reportes.Inversion.InversionScreen(
+                            onBackPressed = { navController.popBackStack() },
+                            onSubmit = { navController.popBackStack("main_app/reports", false) },
+                            clienteNumero = clienteNumero
                     )
                 }
                 composable(

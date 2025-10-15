@@ -41,7 +41,8 @@ import com.suncar.suncartrabajador.ui.shared.SendButton
 fun InversionScreen(
         onBackPressed: () -> Unit = {},
         onSubmit: () -> Unit = {},
-        inversionViewModel: InversionViewModel = viewModel()
+        inversionViewModel: InversionViewModel = viewModel(),
+        clienteNumero: String? = null
 ) {
     var isSubmitPressed by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -54,6 +55,13 @@ fun InversionScreen(
     val dateTimeViewModel: DateTimeViewModel = viewModel()
     val adjuntosViewModel: AdjuntosViewModel = viewModel()
     val firmaClienteViewModel: FirmaClienteViewModel = viewModel()
+
+    // Preseleccionar cliente si viene del deeplink
+    LaunchedEffect(clienteNumero) {
+        if (clienteNumero != null && clienteNumero.isNotBlank()) {
+            clienteViewModel.onNumeroChanged(clienteNumero)
+        }
+    }
 
     // Observar cambios en los estados de cada componente
     val brigadaState by brigadaViewModel.uiState.collectAsState()

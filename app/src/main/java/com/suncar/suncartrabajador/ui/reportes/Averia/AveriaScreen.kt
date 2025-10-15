@@ -42,7 +42,8 @@ import com.suncar.suncartrabajador.ui.shared.SendButton
 fun AveriaScreen(
         onBackPressed: () -> Unit = {},
         onSubmit: () -> Unit = {},
-        averiaViewModel: AveriaViewModel = viewModel()
+        averiaViewModel: AveriaViewModel = viewModel(),
+        clienteNumero: String? = null
 ) {
     var isSubmitPressed by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -56,6 +57,13 @@ fun AveriaScreen(
     val adjuntosViewModel: AdjuntosViewModel = viewModel()
     val descripcionViewModel: DescripcionViewModel = viewModel()
     val firmaClienteViewModel: FirmaClienteViewModel = viewModel()
+
+    // Preseleccionar cliente si viene del deeplink
+    LaunchedEffect(clienteNumero) {
+        if (clienteNumero != null && clienteNumero.isNotBlank()) {
+            clienteViewModel.onNumeroChanged(clienteNumero)
+        }
+    }
 
     // Observar cambios en los estados de cada componente
     val brigadaState by brigadaViewModel.uiState.collectAsState()
