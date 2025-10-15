@@ -1,5 +1,6 @@
 package com.suncar.suncartrabajador.ui.features.DateTime
 
+import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.os.Build
@@ -32,6 +33,7 @@ fun DateTimeComposable(
     val state by dateTimeViewModel.uiState.collectAsState()
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val isModernPicker = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     var showNativeStartPicker by remember { mutableStateOf(false) }
@@ -44,21 +46,32 @@ fun DateTimeComposable(
         icon = Icons.Filled.AccessTime,
         isLoading = state.isLoading
     ) {
-        // Fecha actual (no editable)
+        // Fecha seleccionable
         state.currentDate?.let { currentDate ->
             val dateFormatter = DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy", Locale("es", "ES"))
             val formattedDate = currentDate.format(dateFormatter).replaceFirstChar { it.uppercase() }
 
-            OutlinedTextField(
-                value = formattedDate,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Fecha Actual") },
-                leadingIcon = {
-                    Icon(Icons.Filled.CalendarToday, contentDescription = "Fecha")
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = formattedDate,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Fecha") },
+                    leadingIcon = {
+                        Icon(Icons.Filled.CalendarToday, contentDescription = "Fecha")
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(onClick = { showDatePicker = true }) {
+                    Text("Cambiar")
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -265,6 +278,27 @@ fun DateTimeComposable(
                     false
                 )
                 dialog.setOnDismissListener { showNativeEndPicker = false }
+                dialog.show()
+            }
+            onDispose { }
+        }
+    }
+
+    // DatePickerDialog para seleccionar fecha
+    if (showDatePicker) {
+        val currentDate = state.currentDate ?: java.time.LocalDate.now()
+        DisposableEffect(showDatePicker) {
+            if (showDatePicker) {
+                val dialog = DatePickerDialog(
+                    context,
+                    { _, year: Int, month: Int, dayOfMonth: Int ->
+                        dateTimeViewModel.updateDate(year, month + 1, dayOfMonth)
+                    },
+                    currentDate.year,
+                    currentDate.monthValue - 1, // DatePicker usa 0-11 para meses
+                    currentDate.dayOfMonth
+                )
+                dialog.setOnDismissListener { showDatePicker = false }
                 dialog.show()
             }
             onDispose { }

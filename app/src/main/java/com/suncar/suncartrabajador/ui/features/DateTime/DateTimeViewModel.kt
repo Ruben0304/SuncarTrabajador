@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalTime
 
 class DateTimeViewModel : ViewModel() {
@@ -32,6 +33,11 @@ class DateTimeViewModel : ViewModel() {
                 )
             }
         }
+    }
+
+    fun updateDate(year: Int, month: Int, dayOfMonth: Int) {
+        val newDate = LocalDate.of(year, month, dayOfMonth)
+        _uiState.update { it.copy(currentDate = newDate) }
     }
 
     fun updateStartTime(hour: Int, minute: Int) {

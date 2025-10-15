@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.suncar.suncartrabajador",
+      "sha256_cert_fingerprints": [
+        "04:9E:C7:2F:93:A4:8E:C5:AF:05:71:B7:AC:66:96:BC:83:D8:7B:18:C9:9E:5A:77:FC:15:31:EE:05:96:80:AD"
+      ]
+    }
+  }
+]

@@ -92,13 +92,29 @@ class MainActivity : ComponentActivity() {
 
     private fun handleDeepLink(intent: Intent?) {
         val data: Uri? = intent?.data
-        if (data != null && data.scheme == "suncartrabajador" && data.host == "crear") {
-            // Formato esperado: suncartrabajador://crear/{tipo}/{numeroCliente}
-            val pathSegments = data.pathSegments
-            if (pathSegments.size >= 2) {
-                val tipo = pathSegments[0] // averia, mantenimiento, inversion
-                val numeroCliente = pathSegments[1]
-                deepLinkData.value = DeepLinkData(tipo, numeroCliente)
+
+        if (data != null) {
+            // Formato 1: suncartrabajador://crear/{tipo}/{numeroCliente}
+            if (data.scheme == "suncartrabajador" && data.host == "crear") {
+                val pathSegments = data.pathSegments
+                if (pathSegments.size >= 2) {
+                    val tipo = pathSegments[0] // averia, mantenimiento, inversion
+                    val numeroCliente = pathSegments[1]
+                    deepLinkData.value = DeepLinkData(tipo, numeroCliente)
+                }
+            }
+
+            // Formato 2: https://api.suncarsrl.com/app/crear/{tipo}/{numeroCliente}
+            else if (data.scheme == "https" && data.host == "api.suncarsrl.com") {
+                val pathSegments = data.pathSegments
+                // Esperamos: /app/crear/{tipo}/{numeroCliente}
+                if (pathSegments.size >= 4 &&
+                    pathSegments[0] == "app" &&
+                    pathSegments[1] == "crear") {
+                    val tipo = pathSegments[2] // averia, mantenimiento, inversion
+                    val numeroCliente = pathSegments[3]
+                    deepLinkData.value = DeepLinkData(tipo, numeroCliente)
+                }
             }
         }
     }
