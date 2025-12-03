@@ -10,11 +10,28 @@ data class LoginRequest(
     val contraseña: String
 )
 
+data class LoginUserResponse(
+    @SerializedName("ci")
+    val ci: String,
+    @SerializedName("nombre")
+    val nombre: String,
+    @SerializedName("rol")
+    val rol: String
+)
+
 data class LoginResponse(
     @SerializedName("success")
     val success: Boolean,
     @SerializedName("message")
     val message: String,
+    @SerializedName("token")
+    val token: String? = null,
+    @SerializedName("user")
+    val user: LoginUserResponse? = null,
+    /**
+     * Campo legado para compatibilidad con el endpoint antiguo.
+     * El nuevo endpoint puede no devolverlo.
+     */
     @SerializedName("brigada")
     val brigada: Brigada? = null
 )

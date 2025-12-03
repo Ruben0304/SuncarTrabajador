@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.suncar.suncartrabajador.app.service_implementations.AuthService
 import com.suncar.suncartrabajador.app.service_implementations.TrabajadoresService
+import com.suncar.suncartrabajador.data.local.AuthPreferences
 import com.suncar.suncartrabajador.data.local.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,17 +58,32 @@ class DatosInicialesViewModel : ViewModel() {
                 val sessionManager = SessionManager(context)
                 if (sessionManager.hasSession()) {
                     _uiState.update {
-                        it.copy(currentLoadingStep = "Iniciando session", loadingProgress = 0.5f)
+                        it.copy(currentLoadingStep = "Iniciando sesión", loadingProgress = 0.4f)
                     }
                     val user = sessionManager.getSession()
                     val service = AuthService()
                     service.login(user!!.ci, user.password)
                 }
-                // Paso 2: Cargar trabajadores desde el servidor
+
+                // Si aún no hay token JWT, no intentamos llamar a endpoints protegidos
+                val token = AuthPreferences.getToken()
+                if (token.isNullOrBlank()) {
+                    _uiState.update {
+                        it.copy(
+                                isLoading = false,
+                                loadingProgress = 1.0f,
+                                currentLoadingStep = "Carga completada (sin datos de trabajadores)"
+                        )
+                    }
+                    onComplete()
+                    return@launch
+                }
+
+                // Paso 2: Cargar trabajadores desde el servidor (requiere JWT)
                 _uiState.update {
                     it.copy(
                             currentLoadingStep = "Cargando datos de trabajadores...",
-                            loadingProgress = 0.5f
+                            loadingProgress = 0.6f
                     )
                 }
 
@@ -78,11 +94,11 @@ class DatosInicialesViewModel : ViewModel() {
                     _uiState.update {
                         it.copy(
                                 trabajadores = trabajadores,
-                                loadingProgress = 0.8f,
+                                loadingProgress = 0.9f,
                                 currentLoadingStep = "Finalizando carga..."
                         )
                     }
-                    
+
                     // Solo completar si la carga fue exitosa
                     _uiState.update {
                         it.copy(

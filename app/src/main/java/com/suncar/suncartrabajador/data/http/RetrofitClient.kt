@@ -1,5 +1,7 @@
 package com.suncar.suncartrabajador.data.http
 
+import com.suncar.suncartrabajador.data.local.AuthPreferences
+import com.suncar.suncartrabajador.singleton.Auth
 import java.util.concurrent.TimeUnit
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -8,13 +10,28 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private val authInterceptor = Interceptor { chain ->
-        val originalRequest = chain.request()
-        val requestBuilder = originalRequest.newBuilder()
-            .header("Authorization", "Bearer suncar-token-2025")
-        val request = requestBuilder.build()
-        chain.proceed(request)
-    }
+    private val authInterceptor =
+        Interceptor { chain ->
+            val originalRequest = chain.request()
+            val requestBuilder = originalRequest.newBuilder()
+
+            // Inyectar el token JWT si está disponible
+            val token = AuthPreferences.getToken()
+            if (!token.isNullOrBlank()) {
+                requestBuilder.header("Authorization", "Bearer $token")
+            }
+
+            val request = requestBuilder.build()
+            val response: Response = chain.proceed(request)
+
+            // Si el token es inválido o expiró, limpiar la sesión local
+            if (response.code == 401) {
+                AuthPreferences.clear()
+                Auth.logout()
+            }
+
+            response
+        }
 
     private val okHttpClient =
             OkHttpClient.Builder()
@@ -34,3 +51,4 @@ object RetrofitClient {
 
     inline fun <reified T> createService(): T = retrofit.create(T::class.java)
 }
+

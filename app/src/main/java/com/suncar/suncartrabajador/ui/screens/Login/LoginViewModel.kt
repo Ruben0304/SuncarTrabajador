@@ -55,7 +55,7 @@ class LoginViewModel : ViewModel() {
             try {
                 val response: LoginResponse = authService.login(currentState.ci, currentState.password)
                 
-                if (response.success && response.brigada != null) {
+                if (response.success) {
                     // Guardar sesión automáticamente
                     sessionManager?.saveSession(currentState.ci, currentState.password)
                     

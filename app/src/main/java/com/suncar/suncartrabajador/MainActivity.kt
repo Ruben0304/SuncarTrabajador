@@ -40,6 +40,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.suncar.suncartrabajador.data.local.AuthPreferences
 import com.suncar.suncartrabajador.singleton.Auth
 import com.suncar.suncartrabajador.ui.features.DatosIniciales.DatosInicialesComposable
 import com.suncar.suncartrabajador.ui.reportes.Averia.AveriaScreen
@@ -63,6 +64,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Inicializar almacenamiento de autenticación JWT
+        AuthPreferences.init(applicationContext)
 
         // Procesar deeplink
         handleDeepLink(intent)

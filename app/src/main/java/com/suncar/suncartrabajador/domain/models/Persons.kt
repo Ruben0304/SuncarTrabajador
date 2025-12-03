@@ -9,5 +9,7 @@ data class TeamMember(
     @SerializedName("CI")
     val id: String = "",
     @SerializedName("tiene_contraseña")
-    val hasPassword: Boolean = false
+    val hasPassword: Boolean = false,
+    @SerializedName("is_brigadista")
+    val isBrigadista: Boolean = false
 )

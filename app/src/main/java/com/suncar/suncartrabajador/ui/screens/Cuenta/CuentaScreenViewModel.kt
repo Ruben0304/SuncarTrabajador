@@ -35,8 +35,11 @@ class CuentaScreenViewModel : ViewModel() {
             // Obtener todos los trabajadores disponibles desde Trabajadores
             val allTrabajadores = Trabajadores.getTrabajadores()
             
+            // Filtrar solo trabajadores que son brigadistas (is_brigadista = true)
+            val brigadistas = allTrabajadores.filter { it.isBrigadista }
+            
             // Filtrar trabajadores que no están en la brigada actual
-            val availableTrabajadores = allTrabajadores.filterNot { trabajador ->
+            val availableTrabajadores = brigadistas.filterNot { trabajador ->
                 currentIntegrantes.any { integrante -> integrante.id == trabajador.id }
             }
             
@@ -63,8 +66,10 @@ class CuentaScreenViewModel : ViewModel() {
                     updateBrigadaInAuth(newTeamMembers)
                     
                     // Filtrar trabajadores disponibles excluyendo los que están en la brigada
+                    // Solo incluir trabajadores con is_brigadista = true
                     val allTrabajadores = Trabajadores.getTrabajadores()
-                    val availableTrabajadores = allTrabajadores.filterNot { trabajador ->
+                    val brigadistas = allTrabajadores.filter { it.isBrigadista }
+                    val availableTrabajadores = brigadistas.filterNot { trabajador ->
                         newTeamMembers.any { integrante -> integrante.id == trabajador.id }
                     }
                     
@@ -88,8 +93,10 @@ class CuentaScreenViewModel : ViewModel() {
                 updateBrigadaInAuth(newTeamMembers)
                 
                 // Filtrar trabajadores disponibles excluyendo los que están en la brigada
+                // Solo incluir trabajadores con is_brigadista = true
                 val allTrabajadores = Trabajadores.getTrabajadores()
-                val availableTrabajadores = allTrabajadores.filterNot { trabajador ->
+                val brigadistas = allTrabajadores.filter { it.isBrigadista }
+                val availableTrabajadores = brigadistas.filterNot { trabajador ->
                     newTeamMembers.any { integrante -> integrante.id == trabajador.id }
                 }
                 

@@ -52,14 +52,17 @@ class BrigadaViewModel : ViewModel() {
                     Log.d("BrigadaViewModel", "Trabajador disponible: ${trabajador.name} (ID: ${trabajador.id})")
                 }
                 
+                // Filtrar solo trabajadores que son brigadistas
+                val brigadistas = filterBrigadistas(disponibles)
+                
                 if (currentBrigada != null) {
                     // Cargar líder y miembros de la brigada actual
                     _uiState.update {
                         it.copy(
                             leader = currentBrigada.lider,
                             teamMembers = integrantes,
-                            availableTeamMembers = getAvailableTeamMembers(disponibles, integrantes),
-                            availableLeaders = disponibles,
+                            availableTeamMembers = getAvailableTeamMembers(brigadistas, integrantes),
+                            availableLeaders = brigadistas,
                             isLoading = false
                         )
                     }
@@ -69,8 +72,8 @@ class BrigadaViewModel : ViewModel() {
                         it.copy(
                             leader = null,
                             teamMembers = emptyList(),
-                            availableTeamMembers = disponibles,
-                            availableLeaders = disponibles,
+                            availableTeamMembers = brigadistas,
+                            availableLeaders = brigadistas,
                             isLoading = false
                         )
                     }
@@ -92,10 +95,20 @@ class BrigadaViewModel : ViewModel() {
 
     /**
      * Obtiene los trabajadores disponibles excluyendo los que ya están seleccionados como miembros del equipo
+     * Solo incluye trabajadores con is_brigadista = true
      */
     private fun getAvailableTeamMembers(allTrabajadores: List<TeamMember>, selectedMembers: List<TeamMember>): List<TeamMember> {
         val selectedIds = selectedMembers.map { it.id }.toSet()
-        return allTrabajadores.filter { it.id !in selectedIds }
+        return allTrabajadores.filter { 
+            it.isBrigadista && it.id !in selectedIds 
+        }
+    }
+    
+    /**
+     * Filtra trabajadores para mostrar solo los que son brigadistas
+     */
+    private fun filterBrigadistas(trabajadores: List<TeamMember>): List<TeamMember> {
+        return trabajadores.filter { it.isBrigadista }
     }
 
     /**
@@ -103,7 +116,7 @@ class BrigadaViewModel : ViewModel() {
      */
     private fun updateAvailableTeamMembers() {
         val currentState = _uiState.value
-        // Usar los datos ya cargados en availableLeaders que incluyen todos los trabajadores
+        // Usar los datos ya cargados en availableLeaders que ya están filtrados por brigadistas
         val allTrabajadores = currentState.availableLeaders
         val availableMembers = getAvailableTeamMembers(allTrabajadores, currentState.teamMembers)
         
@@ -178,7 +191,10 @@ class BrigadaViewModel : ViewModel() {
         val currentBrigada = Auth.getCurrentBrigada()
         val integrantes = Auth.getIntegrantes()
         
-        Log.d("BrigadaViewModel", "refreshBrigadaWithNewWorkers - Nuevos trabajadores: ${newTrabajadores.size}")
+        // Filtrar solo trabajadores que son brigadistas
+        val brigadistas = filterBrigadistas(newTrabajadores)
+        
+        Log.d("BrigadaViewModel", "refreshBrigadaWithNewWorkers - Nuevos trabajadores: ${newTrabajadores.size}, Brigadistas: ${brigadistas.size}")
         
         if (currentBrigada != null) {
             // Actualizar con brigada existente
@@ -186,8 +202,8 @@ class BrigadaViewModel : ViewModel() {
                 it.copy(
                     leader = currentBrigada.lider,
                     teamMembers = integrantes,
-                    availableTeamMembers = getAvailableTeamMembers(newTrabajadores, integrantes),
-                    availableLeaders = newTrabajadores,
+                    availableTeamMembers = getAvailableTeamMembers(brigadistas, integrantes),
+                    availableLeaders = brigadistas,
                     isLoading = false
                 )
             }
@@ -195,8 +211,8 @@ class BrigadaViewModel : ViewModel() {
             // Actualizar solo los trabajadores disponibles
             _uiState.update {
                 it.copy(
-                    availableTeamMembers = getAvailableTeamMembers(newTrabajadores, currentState.teamMembers),
-                    availableLeaders = newTrabajadores,
+                    availableTeamMembers = getAvailableTeamMembers(brigadistas, currentState.teamMembers),
+                    availableLeaders = brigadistas,
                     isLoading = false
                 )
             }

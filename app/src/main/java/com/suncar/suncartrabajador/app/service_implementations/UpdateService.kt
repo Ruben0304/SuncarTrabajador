@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Environment
 import androidx.core.content.FileProvider
+import com.suncar.suncartrabajador.data.local.AuthPreferences
 import com.suncar.suncartrabajador.data.services.UpdateApiService
 import com.suncar.suncartrabajador.domain.models.UpdateInfo
 import com.suncar.suncartrabajador.domain.models.UpdateRequest
@@ -20,17 +21,30 @@ class UpdateService(private val updateApiService: UpdateApiService, private val 
 
     suspend fun checkForUpdates(currentVersion: String?): UpdateInfo {
         return withContext(Dispatchers.IO) {
+            // Si no hay token JWT, no llamamos al endpoint protegido
+            val token = AuthPreferences.getToken()
+            if (token.isNullOrBlank()) {
+                return@withContext UpdateInfo(
+                        isUpToDate = true,
+                        latestVersion = currentVersion,
+                        downloadUrl = "",
+                        fileSize = 0,
+                        changelog = "",
+                        forceUpdate = false
+                )
+            }
+
             try {
                 val request = UpdateRequest(currentVersion = currentVersion, platform = "android")
                 updateApiService.checkForUpdates(request)
             } catch (e: Exception) {
-                // Si hay error en la verificación, asumimos que la app está actualizada
+                // Si hay error en la verificación, asumimos que la app puede seguir funcionando
                 UpdateInfo(
-                        isUpToDate = false,
+                        isUpToDate = true,
                         latestVersion = currentVersion,
                         downloadUrl = "",
                         fileSize = 0,
-                        changelog = "Error" + e.message,
+                        changelog = "",
                         forceUpdate = false
                 )
             }

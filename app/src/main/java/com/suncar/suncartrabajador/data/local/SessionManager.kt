@@ -2,6 +2,7 @@ package com.suncar.suncartrabajador.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.suncar.suncartrabajador.data.local.AuthPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import androidx.core.content.edit
@@ -56,5 +57,9 @@ class SessionManager(context: Context) {
      */
     fun clearSession() {
         sharedPreferences.edit().remove(sessionKey).apply()
+        // También limpiar token y datos de autenticación JWT
+        if (AuthPreferences.isInitialized()) {
+            AuthPreferences.clear()
+        }
     }
 } 
