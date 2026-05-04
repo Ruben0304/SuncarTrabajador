@@ -1,11 +1,11 @@
 [versions]
-agp = "8.12.3"
+agp = "8.2.2"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
 kmongoAsync = "5.2.1"
 kmongoCoroutine = "5.2.1"
 kmongoSerialization = "5.2.1"
-kotlin = "2.2.20"
+kotlin = "2.1.0"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -27,6 +27,7 @@ signaturepad = "2.1.2"
 signaturePadVersion = "0.1.4"
 
 [libraries]
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
